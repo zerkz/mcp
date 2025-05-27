@@ -44,6 +44,7 @@ export const deployMetadataParams = z.object({
     .array(z.string())
     .describe('Path to the local source files to deploy. Leave this unset if the user is vague about what to deploy.')
     .optional(),
+  manifest: z.string().describe('Full file path for manifest (XML file) of components to deploy.').optional(),
   // `RunSpecifiedTests` is excluded on purpose because the tool sets this level when Apex tests to run are passed in.
   //
   // Can be left unset to let the org decide which test level to use:
@@ -84,16 +85,17 @@ export const registerToolDeployMetadata = (server: McpServer): void => {
     `Deploy metadata to an org from your local project.
 
 AGENT INSTRUCTIONS:
-If the user doesn't specify what to deploy exactly ("deploy my changes"), leave the "sourceDir" param empty so the tool calculates which files to deploy.
+If the user doesn't specify what to deploy exactly ("deploy my changes"), leave the "sourceDir" and "manifest" params empty so the tool calculates which files to deploy.
 
 EXAMPLE USAGE:
 Deploy changes to my org
 Deploy this file to my org
+Deploy the manifest
 Deploy X metadata to my org
 Deploy X to my org and run A,B and C apex tests.
 `,
     deployMetadataParams.shape,
-    async ({ sourceDir, usernameOrAlias, apexTests, apexTestLevel, directory }) => {
+    async ({ sourceDir, usernameOrAlias, apexTests, apexTestLevel, directory, manifest }) => {
       // TODO: check that apexTestLevel and apexTests aren't set at the same time.
 
       // TODO: documemnt why this is needed for STL
@@ -110,7 +112,7 @@ Deploy X to my org and run A,B and C apex tests.
           subscribeSDREvents: true,
         });
 
-        const cset = await buildComponentSet(connection, project, stl, sourceDir);
+        const cset = await buildComponentSet(connection, project, stl, sourceDir, manifest);
 
         if (cset.size === 0) {
           return textResponse('No files to deploy found');
@@ -151,17 +153,27 @@ async function buildComponentSet(
   connection: Connection,
   project: SfProject,
   stl: SourceTracking,
-  sourceDir?: string[]
+  sourceDir?: string[],
+  manifestPath?: string
 ): Promise<ComponentSet> {
-  if (sourceDir) {
+  if (sourceDir || manifestPath) {
     return ComponentSetBuilder.build({
       apiversion: connection.getApiVersion(),
       sourceapiversion: ensureString((await project.resolveProjectConfig()).sourceApiVersion),
       sourcepath: sourceDir,
+      ...(manifestPath
+        ? {
+            manifest: {
+              manifestPath,
+              directoryPaths: project.getUniquePackageDirectories().map((pDir) => pDir.fullPath),
+            },
+          }
+        : {}),
       projectDir: stl?.projectPath,
     });
   }
 
+  // No specific metadata requested to deploy, build component set from STL.
   const cs = (await stl.localChangesAsComponentSet(false))[0] ?? new ComponentSet(undefined, stl.registry);
   return cs;
 }
