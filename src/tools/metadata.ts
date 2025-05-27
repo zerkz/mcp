@@ -96,7 +96,13 @@ Deploy X to my org and run A,B and C apex tests.
 `,
     deployMetadataParams.shape,
     async ({ sourceDir, usernameOrAlias, apexTests, apexTestLevel, directory, manifest }) => {
-      // TODO: check that apexTestLevel and apexTests aren't set at the same time.
+      if (apexTests && apexTestLevel) {
+        return textResponse("You can't specify both `apexTests` and `apexTestLevel` parameters.", true);
+      }
+
+      if (sourceDir && manifest) {
+        return textResponse("You can't specify both `sourceDir` and `manifest` parameters.", true);
+      }
 
       // TODO: documemnt why this is needed for STL
       process.chdir(directory);
@@ -105,6 +111,14 @@ Deploy X to my org and run A,B and C apex tests.
       const project = await SfProject.resolve(directory);
 
       const org = await Org.create({ connection });
+
+      if (!sourceDir && !manifest && !(await org.tracksSource())) {
+        return textResponse(
+          'This org does not support source-tracking, you should specify what to files or manifest to deploy.',
+          true
+        );
+      }
+
       try {
         const stl = await SourceTracking.create({
           org,
@@ -112,20 +126,14 @@ Deploy X to my org and run A,B and C apex tests.
           subscribeSDREvents: true,
         });
 
-        const cset = await buildComponentSet(connection, project, stl, sourceDir, manifest);
+        const componentSet = await buildComponentSet(connection, project, stl, sourceDir, manifest);
 
-        if (cset.size === 0) {
-          return textResponse('No files to deploy found');
-          // TODO: should be this an error? this is different from an org that doesn't do source-tracking
-          // return textResponse('STL: no files to deploy found', true);
-          // let filesOutput = ''
-          // cset.getSourceComponents().toArray().forEach((cmp) => {
-          //   filesOutput += `${cmp.type.name}:${cmp.fullName}\n`;
-          // });
-          // return textResponse(filesOutput)
+        if (componentSet.size === 0) {
+          // STL found no changes
+          return textResponse('No local changes to deploy were found.');
         }
 
-        const deploy = await cset.deploy({
+        const deploy = await componentSet.deploy({
           usernameOrConnection: connection,
           apiOptions: {
             ...(apexTests ? { runTests: apexTests, testLevel: 'RunSpecifiedTests' } : {}),
