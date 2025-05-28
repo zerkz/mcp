@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { sep } from 'node:path';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import {
@@ -22,7 +23,6 @@ import {
   parseAllowedOrgs,
   sanitizePath,
 } from '../../src/shared/utils.js';
-import { sep } from 'node:path';
 
 // Create a mock version of availableToolsets for testing instead of importing from index.js
 // This avoids the error with parseArgs when running tests
