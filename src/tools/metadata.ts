@@ -148,7 +148,6 @@ Deploy X to my org and run A,B and C apex tests.
         });
 
         return textResponse(`Deploy result: ${JSON.stringify(result.response)}`, !result.response.success);
-        // }
       } catch (error) {
         console.error(error);
         return textResponse(
@@ -234,11 +233,12 @@ Retrieve X metadata from my org
           timeout: Duration.minutes(10),
         });
 
-        // TODO: remove `zipFile` base64 field from response
-        return textResponse(`Retrieve result: ${JSON.stringify(result.response)}`, !result.response.success);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { zipFile, ...retrieveResult } = result.response;
+
+        return textResponse(`Retrieve result: ${JSON.stringify(retrieveResult)}`, !retrieveResult.success);
         // }
       } catch (error) {
-        // TODO: improve error handling
         return textResponse(
           `Failed to retrieve metadata: ${error instanceof Error ? error.message : 'Unknown error'}`,
           true
