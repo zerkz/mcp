@@ -23,7 +23,7 @@ import { parseAllowedOrgs, parseStartupArguments, getEnabledToolsets } from './s
 import * as orgs from './tools/orgs.js';
 import * as data from './tools/data.js';
 import * as users from './tools/users.js';
-import * as metadata from './tools/metadata.js';
+import * as metadata from './tools/metadata/index.js';
 
 // Create server instance
 const server = new McpServer({
