@@ -145,9 +145,8 @@ Deploy X to my org and run A,B and C apex tests.
           },
         });
 
+        // polling freq. is set dynamically by SDR based no the component set size.
         const result = await deploy.pollStatus({
-          // TODO: what'a good default for this?
-          // Coding agents migth be deploy just a few files each turn so 5min is ok, not sure about full-project deploys and how we would handle timeouts.
           timeout: Duration.minutes(10),
         });
 
@@ -244,9 +243,8 @@ Retrieve X metadata from my org
           output: project.getDefaultPackage().fullPath,
         });
 
+        // polling freq. is set dynamically by SDR based no the component set size.
         const result = await retrieve.pollStatus({
-          // TODO: what'a good default for this?
-          // Coding agents migth be deploy just a few files each turn so 5min is ok, not sure about full-project deploys and how we would handle timeouts.
           timeout: Duration.minutes(10),
         });
 
