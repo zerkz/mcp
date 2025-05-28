@@ -28,17 +28,6 @@ import { directoryParam, usernameOrAliasParam } from '../shared/params.js';
 import { textResponse } from '../shared/utils.js';
 import { getConnection } from '../shared/auth.js';
 
-/*
- * Deploy metadata to a Salesforce org.
- *
- * Parameters:
- * - TODO
- * - usernameOrAlias: username or alias for the Salesforce org to run the query against
- *
- * Returns:
- * - textResponse: Deploy response in json
- */
-
 export const deployMetadataParams = z.object({
   sourceDir: z
     .array(z.string())
@@ -79,6 +68,20 @@ Set this param if the user ask an Apex test to be run during deployment.
 
 export type DeployMetadata = z.infer<typeof deployMetadataParams>;
 
+/*
+ * Deploy metadata to a Salesforce org.
+ *
+ * Parameters:
+ * - sourceDir: Path to the local source files to deploy.
+ * - manifest: Full file path for manifest (XML file) of components to deploy.
+ * - apexTestLevel: Apex test level to use during deployment.
+ * - apexTests: Apex tests classes to run.
+ * - usernameOrAlias: Username or alias of the Salesforce org to deploy to.
+ * - directory: Directory of the local project.
+ *
+ * Returns:
+ * - textResponse: Deploy result.
+ */
 export const registerToolDeployMetadata = (server: McpServer): void => {
   server.tool(
     'sf-deploy-metadata',
@@ -104,7 +107,7 @@ Deploy X to my org and run A,B and C apex tests.
         return textResponse("You can't specify both `sourceDir` and `manifest` parameters.", true);
       }
 
-      // TODO: documemnt why this is needed for STL
+      // needed for org allowlist to work
       process.chdir(directory);
 
       const connection = await getConnection(usernameOrAlias);
@@ -170,6 +173,19 @@ const retrieveMetadataParams = z.object({
   usernameOrAlias: usernameOrAliasParam,
   directory: directoryParam,
 });
+
+/*
+ * Retrieve metadata from an org to your local project.
+ *
+ * Parameters:
+ * - sourceDir: Path to the local source files to retrieve.
+ * - manifest: Full file path for manifest (XML file) of components to retrieve.
+ * - usernameOrAlias: Username or alias of the Salesforce org to retrieve from.
+ * - directory: Directory of the local project.
+ *
+ * Returns:
+ * - textResponse: Retrieve result.
+ */
 export const registerToolRetrieveMetadata = (server: McpServer): void => {
   server.tool(
     'sf-retrieve-metadata',
@@ -191,7 +207,7 @@ Retrieve X metadata from my org
         return textResponse("You can't specify both `sourceDir` and `manifest` parameters.", true);
       }
 
-      // TODO: documemnt why this is needed for STL
+      // needed for org allowlist to work
       process.chdir(directory);
 
       const connection = await getConnection(usernameOrAlias);
