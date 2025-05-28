@@ -86,6 +86,7 @@ if (all || enabledToolsets.has('users')) {
 if (all || enabledToolsets.has('metadata')) {
   // assign permission set
   metadata.registerToolDeployMetadata(server);
+  metadata.registerToolRetrieveMetadata(server);
 }
 
 async function main(): Promise<void> {
