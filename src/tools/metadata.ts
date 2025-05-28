@@ -38,17 +38,18 @@ export const deployMetadataParams = z.object({
   //
   // Can be left unset to let the org decide which test level to use:
   // https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_deploy_running_tests.htm
-  //
-  // TODO: improve desc. for each test level, user should be able to say:
-  // * "deploy X and run tests in orgs expect ones from packages" -> "RunLocalTests"
-  // * "deploy X and run all tests in orgs" -> "RunAllTestsInOrg"
   apexTestLevel: z
     .enum(['NoTestRun', 'RunLocalTests', 'RunAllTestsInOrg'])
     .describe(
       `Apex test level to use during deployment.
 
 AGENT INSTRUCTIONS
-Set this only if the user specifically ask to set a specific test level for the deployment, otherwise leave it unset.
+Set this only if the user specifically ask to run apex tests in some of these ways:
+
+NoTestRun="No tests are run"
+RunLocalTests="Run all tests in the org, except the ones that originate from installed managed and unlocked packages."
+RunAllTestsInOrg="Run all tests in the org, including tests of managed packages"
+
 Don't set this param is "apexTests" is also set.
 `
     )
