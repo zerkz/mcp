@@ -19,10 +19,11 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { parseAllowedOrgs, parseStartupArguments, getEnabledToolsets } from './shared/utils.js';
-import * as orgs from './tools/orgs.js';
-import * as data from './tools/data.js';
-import * as users from './tools/users.js';
+import { parseStartupArguments, getEnabledToolsets } from './shared/utils.js';
+import * as core from './tools/core/index.js';
+import * as orgs from './tools/orgs/index.js';
+import * as data from './tools/data/index.js';
+import * as users from './tools/users/index.js';
 import * as metadata from './tools/metadata/index.js';
 
 // Create server instance
@@ -35,15 +36,12 @@ const server = new McpServer({
   },
 });
 
-const { values, positionals } = parseStartupArguments();
-const { toolsets } = values;
+const { values } = parseStartupArguments();
 
 // Toolsets will always be set. It is 'all' by default
 const availableToolsets = ['all', 'orgs', 'data', 'users', 'metadata'];
-const enabledToolsets = getEnabledToolsets(availableToolsets, toolsets);
+const enabledToolsets = getEnabledToolsets(availableToolsets, values.toolsets);
 const all = enabledToolsets.has('all');
-
-export const ALLOWED_ORGS = parseAllowedOrgs(positionals);
 
 // TODO: Should we add annotations to our tools? https://modelcontextprotocol.io/docs/concepts/tools#tool-definition-structure
 // TODO: Move tool names into a shared file, that way if we reference them in multiple places, we can update them in one place
@@ -52,7 +50,7 @@ export const ALLOWED_ORGS = parseAllowedOrgs(positionals);
 // CORE TOOLS (always on)
 // ************************
 // get username
-orgs.registerToolGetUsername(server);
+core.registerToolGetUsername(server);
 
 // ************************
 // ORG TOOLS
@@ -94,7 +92,6 @@ async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('✅ Salesforce MCP Server running on stdio');
-  console.error(' - Allowed orgs:', ALLOWED_ORGS);
 }
 
 main().catch((error) => {

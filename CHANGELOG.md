@@ -1,3 +1,15 @@
+# [0.1.0](https://github.com/salesforcecli/mcp/compare/0.0.9...0.1.0) (2025-05-29)
+
+### Bug Fixes
+
+- permset bugs, readme, more tests ([5207ada](https://github.com/salesforcecli/mcp/commit/5207ada2c6c329f0b447a8d3e0dcba4dd7919c48))
+
+### Features
+
+- adds assign permission and suggest username tools ([9470a1d](https://github.com/salesforcecli/mcp/commit/9470a1daf2a3d4a16338dcb196c9abcef86271ce))
+- config cache ([bd4fe97](https://github.com/salesforcecli/mcp/commit/bd4fe97d83961fc03f66c5a90f47b14eb672fa05))
+- toolsets, directory context, sf-get-username ([a00e332](https://github.com/salesforcecli/mcp/commit/a00e3324490fc59dda619e3a36e6d0118d6beb8f))
+
 ## [0.0.9](https://github.com/salesforcecli/mcp/compare/0.0.8...0.0.9) (2025-05-25)
 
 ### Bug Fixes
