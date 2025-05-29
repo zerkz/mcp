@@ -17,7 +17,14 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { AuthInfo, ConfigAggregator, ConfigInfo, OrgConfigProperties, type OrgAuthorization } from '@salesforce/core';
-import { getDefaultTargetOrg, getDefaultTargetDevHub, getAllAllowedOrgs, sanitizeOrgs } from '../../src/shared/auth.js';
+import {
+  getDefaultTargetOrg,
+  getDefaultTargetDevHub,
+  getAllAllowedOrgs,
+  sanitizeOrgs,
+  findOrgByUsernameOrAlias,
+} from '../../src/shared/auth.js';
+import { type SanitizedOrgAuthorization } from '../../src/shared/types.js';
 
 describe('auth tests', () => {
   const sandbox = sinon.createSandbox();
@@ -48,6 +55,7 @@ describe('auth tests', () => {
     sandbox.restore();
   });
 
+  // 🟢 DONE
   describe('sanitizeOrgs', () => {
     it('should return only allowed fields and filter out sensitive data', () => {
       const mockRawOrgs: OrgAuthorization[] = [
@@ -191,6 +199,123 @@ describe('auth tests', () => {
     });
   });
 
+  // 🔴 TODO
+  describe('suggestUsername', () => {});
+
+  // 🔴 TODO
+  describe('getConnection', () => {});
+
+  // 🟢 DONE
+  describe('findOrgByUsernameOrAlias', () => {
+    const mockOrgs: SanitizedOrgAuthorization[] = [
+      {
+        username: 'org1@example.com',
+        aliases: ['org1-alias', 'primary-org'],
+        instanceUrl: 'https://org1.salesforce.com',
+        isScratchOrg: false,
+        isDevHub: true,
+        isSandbox: false,
+        orgId: '00D000000000001EAA',
+        oauthMethod: 'web',
+        isExpired: false,
+        configs: null,
+      },
+      {
+        username: 'org2@example.com',
+        aliases: ['org2-alias'],
+        instanceUrl: 'https://org2.salesforce.com',
+        isScratchOrg: true,
+        isDevHub: false,
+        isSandbox: true,
+        orgId: '00D000000000002EAA',
+        oauthMethod: 'jwt',
+        isExpired: false,
+        configs: null,
+      },
+      {
+        username: 'org3@example.com',
+        aliases: null, // Test null aliases
+        instanceUrl: 'https://org3.salesforce.com',
+        isScratchOrg: false,
+        isDevHub: false,
+        isSandbox: false,
+        orgId: '00D000000000003EAA',
+        oauthMethod: 'web',
+        isExpired: true,
+        configs: null,
+      },
+    ];
+
+    it('should find org by exact username match', () => {
+      const result = findOrgByUsernameOrAlias(mockOrgs, 'org2@example.com');
+
+      expect(result).to.not.be.undefined;
+      expect(result!.username).to.equal('org2@example.com');
+    });
+
+    it('should find org by alias match', () => {
+      const result = findOrgByUsernameOrAlias(mockOrgs, 'org1-alias');
+
+      expect(result).to.not.be.undefined;
+      expect(result!.username).to.equal('org1@example.com');
+    });
+
+    // I don't think this is possible, but the types allow it :shrug:
+    it('should find org by alias when org has multiple aliases', () => {
+      const result = findOrgByUsernameOrAlias(mockOrgs, 'primary-org');
+
+      expect(result).to.not.be.undefined;
+      expect(result!.username).to.equal('org1@example.com');
+      expect(result!.aliases).to.deep.equal(['org1-alias', 'primary-org']);
+    });
+
+    it('should return undefined when username is not found', () => {
+      const result = findOrgByUsernameOrAlias(mockOrgs, 'nonexistent@example.com');
+
+      expect(result).to.be.undefined;
+    });
+
+    it('should return undefined when searching for alias that does not exist', () => {
+      const result = findOrgByUsernameOrAlias(mockOrgs, 'nonexistent-alias');
+
+      expect(result).to.be.undefined;
+    });
+
+    it('should handle empty orgs array', () => {
+      const result = findOrgByUsernameOrAlias([], 'any@example.com');
+
+      expect(result).to.be.undefined;
+    });
+
+    it('should handle org with null aliases', () => {
+      const result = findOrgByUsernameOrAlias(mockOrgs, 'org3@example.com');
+
+      expect(result).to.not.be.undefined;
+      expect(result!.username).to.equal('org3@example.com');
+      expect(result!.aliases).to.be.null;
+    });
+
+    // This match the CLI behavior
+    it('should be case sensitive for username matching', () => {
+      const result = findOrgByUsernameOrAlias(mockOrgs, 'ORG1@EXAMPLE.COM');
+
+      expect(result).to.be.undefined;
+    });
+
+    it('should be case sensitive for alias matching', () => {
+      const result = findOrgByUsernameOrAlias(mockOrgs, 'ORG1-ALIAS');
+
+      expect(result).to.be.undefined;
+    });
+  });
+
+  // 🔴 TODO
+  describe('getAllAllowedOrgs', () => {});
+
+  // 🔴 TODO
+  describe('filterAllowedOrgs', () => {});
+
+  // 🟠 INCOMPLETE
   describe('getAllAllowedOrgs', () => {
     let authInfoListStub: sinon.SinonStub;
     let consoleErrorStub: sinon.SinonStub;
@@ -228,6 +353,7 @@ describe('auth tests', () => {
     });
   });
 
+  // 🟢 DONE
   describe('getDefaultTargetOrg', () => {
     it('should return target org config when it exists', async () => {
       const mockConfig: ConfigInfo = {
@@ -419,6 +545,7 @@ describe('auth tests', () => {
     });
   });
 
+  // 🟢 DONE
   describe('getDefaultTargetDevHub', () => {
     it('should return target dev hub config when it exists', async () => {
       const mockConfig: ConfigInfo = {
