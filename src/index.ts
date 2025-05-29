@@ -84,8 +84,9 @@ if (all || enabledToolsets.has('users')) {
 // METADATA TOOLS
 // ************************
 if (all || enabledToolsets.has('metadata')) {
-  // assign permission set
+  // deploy metadata
   metadata.registerToolDeployMetadata(server);
+  // retrieve metadata
   metadata.registerToolRetrieveMetadata(server);
 }
 

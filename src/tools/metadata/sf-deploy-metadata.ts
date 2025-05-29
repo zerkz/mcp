@@ -38,6 +38,7 @@ const deployMetadataParams = z.object({
   // https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_deploy_running_tests.htm
   apexTestLevel: z
     .enum(['NoTestRun', 'RunLocalTests', 'RunAllTestsInOrg'])
+    .optional()
     .describe(
       `Apex test level to use during deployment.
 
@@ -50,8 +51,7 @@ RunAllTestsInOrg="Run all tests in the org, including tests of managed packages"
 
 Don't set this param is "apexTests" is also set.
 `
-    )
-    .optional(),
+    ),
   apexTests: z
     .array(z.string())
     .describe(
