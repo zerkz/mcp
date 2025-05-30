@@ -487,8 +487,8 @@ describe('auth tests', () => {
       configAggregatorGetInfoStub.withArgs(OrgConfigProperties.TARGET_ORG).returns(emptyTargetOrgConfig);
       configAggregatorGetInfoStub.withArgs(OrgConfigProperties.TARGET_DEV_HUB).returns(devHubConfig);
 
-      // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
       const authModule = (await import(
+        // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
         '../../src/shared/auth.js?orgs=DEFAULT_TARGET_DEV_HUB'
       )) as typeof AuthModuleType;
       const { getAllAllowedOrgs } = authModule;
