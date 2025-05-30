@@ -23,6 +23,7 @@ import {
   getAllAllowedOrgs,
   sanitizeOrgs,
   findOrgByUsernameOrAlias,
+  filterAllowedOrgs,
 } from '../../src/shared/auth.js';
 import { type SanitizedOrgAuthorization } from '../../src/shared/types.js';
 
@@ -203,7 +204,13 @@ describe('auth tests', () => {
   describe('suggestUsername', () => {});
 
   // 🔴 TODO
-  describe('getConnection', () => {});
+  describe('suggestUsername', () => {
+    // Stub getAllAllowedOrgs()
+    // DONT stub findOrgByUsernameOrAlias, let it do its thing
+    // Make sure AuthInfo.create is called with the correct args
+    // Stub its return and make sure Connection.create is called with an AuthInfo
+    // and that it returns a Connection
+  });
 
   // 🟢 DONE
   describe('findOrgByUsernameOrAlias', () => {
@@ -309,13 +316,7 @@ describe('auth tests', () => {
     });
   });
 
-  // 🔴 TODO
-  describe('getAllAllowedOrgs', () => {});
-
-  // 🔴 TODO
-  describe('filterAllowedOrgs', () => {});
-
-  // 🟠 INCOMPLETE
+  // 🟢 DONE
   describe('getAllAllowedOrgs', () => {
     let authInfoListStub: sinon.SinonStub;
     let consoleErrorStub: sinon.SinonStub;
@@ -350,6 +351,148 @@ describe('auth tests', () => {
           'No orgs found that match the allowed orgs configuration. Check MCP Server startup config.'
         )
       ).to.be.true;
+    });
+  });
+
+  // 🟢 DONE
+  describe('filterAllowedOrgs', () => {
+    const mockOrgs: SanitizedOrgAuthorization[] = [
+      {
+        username: 'org1@example.com',
+        aliases: ['org1-alias'],
+        instanceUrl: 'https://org1.salesforce.com',
+        isScratchOrg: false,
+        isDevHub: true,
+        isSandbox: false,
+        orgId: '00D000000000001EAA',
+        oauthMethod: 'web',
+        isExpired: false,
+        configs: null,
+      },
+      {
+        username: 'org2@example.com',
+        aliases: ['my-alias', 'another-alias'],
+        instanceUrl: 'https://org2.salesforce.com',
+        isScratchOrg: true,
+        isDevHub: false,
+        isSandbox: true,
+        orgId: '00D000000000002EAA',
+        oauthMethod: 'jwt',
+        isExpired: false,
+        configs: null,
+      },
+      {
+        username: 'org3@example.com',
+        aliases: ['org3-alias'],
+        instanceUrl: 'https://org3.salesforce.com',
+        isScratchOrg: false,
+        isDevHub: false,
+        isSandbox: false,
+        orgId: '00D000000000003EAA',
+        oauthMethod: 'web',
+        isExpired: false,
+        configs: null,
+      },
+    ];
+
+    beforeEach(() => {
+      // Set up default responses for config queries (empty configs)
+      // This reuses the existing configAggregatorGetInfoStub from the main describe block
+      const emptyConfig: ConfigInfo = {
+        key: OrgConfigProperties.TARGET_ORG,
+        value: undefined,
+        location: undefined,
+        path: undefined,
+        isLocal: () => false,
+        isGlobal: () => false,
+        isEnvVar: () => false,
+      };
+      configAggregatorGetInfoStub.returns(emptyConfig);
+    });
+
+    it('should return all orgs when ALLOW_ALL_ORGS is in the allowlist', async () => {
+      const allowList = new Set(['ALLOW_ALL_ORGS']);
+
+      const result = await filterAllowedOrgs(mockOrgs, allowList);
+
+      // When ALLOW_ALL_ORGS is present, all orgs should be returned immediately
+      expect(result).to.have.length(3);
+      expect(result).to.deep.equal(mockOrgs);
+    });
+
+    it('should return all orgs when ALLOW_ALL_ORGS is in allowlist even with other entries', async () => {
+      // According to the comment: "ORG_ALLOWLIST has ALLOW_ALL_ORGS and 'my-alias' in it and returns *only* ALLOW_ALL_ORGS"
+      // This means ALLOW_ALL_ORGS takes precedence and returns all orgs regardless of other entries
+      const allowList = new Set(['ALLOW_ALL_ORGS', 'my-alias', 'some-other-entry']);
+
+      const result = await filterAllowedOrgs(mockOrgs, allowList);
+
+      // ALLOW_ALL_ORGS should take precedence and return all orgs
+      expect(result).to.have.length(3);
+      expect(result).to.deep.equal(mockOrgs);
+    });
+
+    it('should filter orgs by username when ALLOW_ALL_ORGS is not present', async () => {
+      const allowList = new Set(['org1@example.com', 'org3@example.com']);
+
+      const result = await filterAllowedOrgs(mockOrgs, allowList);
+
+      expect(result).to.have.length(2);
+      expect(result[0].username).to.equal('org1@example.com');
+      expect(result[1].username).to.equal('org3@example.com');
+    });
+
+    it('should filter orgs by alias when ALLOW_ALL_ORGS is not present', async () => {
+      const allowList = new Set(['my-alias', 'org3-alias']);
+
+      const result = await filterAllowedOrgs(mockOrgs, allowList);
+
+      expect(result).to.have.length(2);
+      expect(result[0].username).to.equal('org2@example.com'); // has 'my-alias'
+      expect(result[1].username).to.equal('org3@example.com'); // has 'org3-alias'
+    });
+
+    it('should filter orgs by both username and alias', async () => {
+      const allowList = new Set(['org1@example.com', 'my-alias']);
+
+      const result = await filterAllowedOrgs(mockOrgs, allowList);
+
+      expect(result).to.have.length(2);
+      expect(result[0].username).to.equal('org1@example.com'); // username match
+      expect(result[1].username).to.equal('org2@example.com'); // alias match for 'my-alias'
+    });
+
+    it('should return empty array when no orgs match the allowlist', async () => {
+      const allowList = new Set(['nonexistent@example.com', 'nonexistent-alias']);
+
+      const result = await filterAllowedOrgs(mockOrgs, allowList);
+
+      expect(result).to.have.length(0);
+    });
+
+    it('should skip orgs without a username', async () => {
+      const orgsWithNoUsername = [
+        ...mockOrgs,
+        {
+          username: undefined, // No username
+          aliases: ['test-alias'],
+          instanceUrl: 'https://test.salesforce.com',
+          isScratchOrg: false,
+          isDevHub: false,
+          isSandbox: false,
+          orgId: '00D000000000004EAA',
+          oauthMethod: 'web',
+          isExpired: false,
+          configs: null,
+        },
+      ];
+
+      const allowList = new Set(['test-alias']); // This alias exists but org has no username
+
+      const result = await filterAllowedOrgs(orgsWithNoUsername, allowList);
+
+      // Should skip the org without username even though alias matches
+      expect(result).to.have.length(0);
     });
   });
 
