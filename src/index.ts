@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*
  * Copyright 2025, Salesforce, Inc.
  *
