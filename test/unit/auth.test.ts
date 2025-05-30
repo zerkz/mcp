@@ -17,15 +17,20 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { AuthInfo, ConfigAggregator, ConfigInfo, OrgConfigProperties, type OrgAuthorization } from '@salesforce/core';
-import {
+import { type SanitizedOrgAuthorization } from '../../src/shared/types.js';
+// Import types for dynamic imports with query strings
+import type * as AuthModuleType from '../../src/shared/auth.js';
+const {
   getDefaultTargetOrg,
   getDefaultTargetDevHub,
   getAllAllowedOrgs,
   sanitizeOrgs,
   findOrgByUsernameOrAlias,
   filterAllowedOrgs,
-} from '../../src/shared/auth.js';
-import { type SanitizedOrgAuthorization } from '../../src/shared/types.js';
+} = (await import(
+  // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
+  '../../src/shared/auth.js?orgs=foo@example.com'
+)) as typeof AuthModuleType;
 
 describe('auth tests', () => {
   const sandbox = sinon.createSandbox();
