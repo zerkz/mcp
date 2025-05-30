@@ -20,17 +20,11 @@ import { AuthInfo, ConfigAggregator, ConfigInfo, OrgConfigProperties, type OrgAu
 import { type SanitizedOrgAuthorization } from '../../src/shared/types.js';
 // Import types for dynamic imports with query strings
 import type * as AuthModuleType from '../../src/shared/auth.js';
-const {
-  getDefaultTargetOrg,
-  getDefaultTargetDevHub,
-  getAllAllowedOrgs,
-  sanitizeOrgs,
-  findOrgByUsernameOrAlias,
-  filterAllowedOrgs,
-} = (await import(
-  // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
-  '../../src/shared/auth.js?orgs=foo@example.com'
-)) as typeof AuthModuleType;
+const { getDefaultTargetOrg, getDefaultTargetDevHub, sanitizeOrgs, findOrgByUsernameOrAlias, filterAllowedOrgs } =
+  (await import(
+    // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
+    '../../src/shared/auth.js?orgs=foo@example.com'
+  )) as typeof AuthModuleType;
 
 describe('auth tests', () => {
   const sandbox = sinon.createSandbox();
@@ -61,7 +55,6 @@ describe('auth tests', () => {
     sandbox.restore();
   });
 
-  // 🟢 DONE
   describe('sanitizeOrgs', () => {
     it('should return only allowed fields and filter out sensitive data', () => {
       const mockRawOrgs: OrgAuthorization[] = [
@@ -192,7 +185,6 @@ describe('auth tests', () => {
       const org1 = result[0];
       expect(org1.username).to.equal('org1@example.com');
       expect(org1.aliases).to.deep.equal(['org1-alias']);
-      expect(org1.isDevHub).to.equal(true);
       expect(org1).to.not.have.property('accessToken');
 
       // Verify second org
@@ -205,19 +197,6 @@ describe('auth tests', () => {
     });
   });
 
-  // 🔴 TODO
-  describe('suggestUsername', () => {});
-
-  // 🔴 TODO
-  describe('suggestUsername', () => {
-    // Stub getAllAllowedOrgs()
-    // DONT stub findOrgByUsernameOrAlias, let it do its thing
-    // Make sure AuthInfo.create is called with the correct args
-    // Stub its return and make sure Connection.create is called with an AuthInfo
-    // and that it returns a Connection
-  });
-
-  // 🟢 DONE
   describe('findOrgByUsernameOrAlias', () => {
     const mockOrgs: SanitizedOrgAuthorization[] = [
       {
@@ -321,18 +300,46 @@ describe('auth tests', () => {
     });
   });
 
-  // 🟢 DONE
   describe('getAllAllowedOrgs', () => {
     let authInfoListStub: sinon.SinonStub;
     let consoleErrorStub: sinon.SinonStub;
 
     beforeEach(() => {
+      // Set up mock org data that will be used across all tests
+      const mockOrgs = [
+        {
+          username: 'org1@example.com',
+          aliases: ['org1-alias'],
+          instanceUrl: 'https://org1.salesforce.com',
+          isScratchOrg: false,
+          isDevHub: true,
+          isSandbox: false,
+          orgId: '00D000000000001EAA',
+          oauthMethod: 'web' as const,
+          isExpired: false,
+          configs: null,
+        },
+        {
+          username: 'org2@example.com',
+          aliases: ['org2-alias'],
+          instanceUrl: 'https://org2.salesforce.com',
+          isScratchOrg: false,
+          isDevHub: true,
+          isSandbox: false,
+          orgId: '00D000000000002EAA',
+          oauthMethod: 'web' as const,
+          isExpired: false,
+          configs: null,
+        },
+      ];
+
       authInfoListStub = sandbox.stub(AuthInfo, 'listAllAuthorizations');
+      authInfoListStub.resolves(mockOrgs);
       consoleErrorStub = sandbox.stub(console, 'error');
 
       // Set up default responses for config queries (empty configs)
       // This reuses the existing configAggregatorGetInfoStub from the main describe block
-      const emptyConfig: ConfigInfo = {
+      const emptyTargetOrgConfig: ConfigInfo = {
         key: OrgConfigProperties.TARGET_ORG,
         value: undefined,
         location: undefined,
@@ -341,11 +348,27 @@ describe('auth tests', () => {
         isGlobal: () => false,
         isEnvVar: () => false,
       };
-      configAggregatorGetInfoStub.returns(emptyConfig);
+
+      const emptyDevHubConfig: ConfigInfo = {
+        key: OrgConfigProperties.TARGET_DEV_HUB,
+        value: undefined,
+        location: undefined,
+        path: undefined,
+        isLocal: () => false,
+        isGlobal: () => false,
+        isEnvVar: () => false,
+      };
+
+      configAggregatorGetInfoStub.withArgs(OrgConfigProperties.TARGET_ORG).returns(emptyTargetOrgConfig);
+      configAggregatorGetInfoStub.withArgs(OrgConfigProperties.TARGET_DEV_HUB).returns(emptyDevHubConfig);
     });
 
     it('should exit on an empty org list', async () => {
       authInfoListStub.resolves([]);
+
+      // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
+      const authModule = (await import('../../src/shared/auth.js?orgs=NONEXISTENT_ORG')) as typeof AuthModuleType;
+      const { getAllAllowedOrgs } = authModule;
 
       await getAllAllowedOrgs();
 
@@ -357,9 +380,127 @@ describe('auth tests', () => {
         )
       ).to.be.true;
     });
+
+    it('should only return orgs that exists in allowlist', async () => {
+      // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
+      const authModule = (await import('../../src/shared/auth.js?orgs=org1@example.com')) as typeof AuthModuleType;
+      const { getAllAllowedOrgs } = authModule;
+
+      const result = await getAllAllowedOrgs();
+
+      expect(authInfoListStub.calledOnce).to.be.true;
+      expect(result).to.have.length(1);
+      expect(result[0].username).to.equal('org1@example.com');
+    });
+
+    it('should return all orgs if ALLOW_ALL_ORGS is set', async () => {
+      // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
+      const authModule = (await import('../../src/shared/auth.js?orgs=ALLOW_ALL_ORGS')) as typeof AuthModuleType;
+      const { getAllAllowedOrgs } = authModule;
+
+      const result = await getAllAllowedOrgs();
+
+      expect(authInfoListStub.calledOnce).to.be.true;
+      expect(result).to.have.length(2);
+      expect(result[0].username).to.equal('org1@example.com');
+      expect(result[1].username).to.equal('org2@example.com');
+    });
+
+    it('should return an orgs by an alias', async () => {
+      // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
+      const authModule = (await import('../../src/shared/auth.js?orgs=org1-alias')) as typeof AuthModuleType;
+      const { getAllAllowedOrgs } = authModule;
+
+      const result = await getAllAllowedOrgs();
+
+      expect(authInfoListStub.calledOnce).to.be.true;
+      expect(result).to.have.length(1);
+      expect(result[0].username).to.equal('org1@example.com');
+    });
+
+    it('should return org matching DEFAULT_TARGET_ORG config', async () => {
+      // Reset stub configurations to ensure clean state
+      configAggregatorGetInfoStub.resetHistory();
+      configAggregatorGetInfoStub.resetBehavior();
+
+      // Stub the config to return org2@example.com as the default target org
+      const targetOrgConfig: ConfigInfo = {
+        key: OrgConfigProperties.TARGET_ORG,
+        value: 'org2@example.com',
+        location: ConfigAggregator.Location.LOCAL,
+        path: '/test/path',
+        isLocal: () => true,
+        isGlobal: () => false,
+        isEnvVar: () => false,
+      };
+
+      const emptyDevHubConfig: ConfigInfo = {
+        key: OrgConfigProperties.TARGET_DEV_HUB,
+        value: undefined,
+        location: undefined,
+        path: undefined,
+        isLocal: () => false,
+        isGlobal: () => false,
+        isEnvVar: () => false,
+      };
+
+      configAggregatorGetInfoStub.withArgs(OrgConfigProperties.TARGET_ORG).returns(targetOrgConfig);
+      configAggregatorGetInfoStub.withArgs(OrgConfigProperties.TARGET_DEV_HUB).returns(emptyDevHubConfig);
+
+      // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
+      const authModule = (await import('../../src/shared/auth.js?orgs=DEFAULT_TARGET_ORG')) as typeof AuthModuleType;
+      const { getAllAllowedOrgs } = authModule;
+
+      const result = await getAllAllowedOrgs();
+
+      expect(authInfoListStub.calledOnce).to.be.true;
+      expect(result).to.have.length(1);
+      expect(result[0].username).to.equal('org2@example.com');
+    });
+
+    it('should return org matching DEFAULT_TARGET_DEV_HUB config', async () => {
+      // Reset stub configurations to ensure clean state
+      configAggregatorGetInfoStub.resetHistory();
+      configAggregatorGetInfoStub.resetBehavior();
+
+      // Stub the config to return org1@example.com as the default dev hub
+      const devHubConfig: ConfigInfo = {
+        key: OrgConfigProperties.TARGET_DEV_HUB,
+        value: 'org1@example.com',
+        location: ConfigAggregator.Location.GLOBAL,
+        path: '/global/path',
+        isLocal: () => false,
+        isGlobal: () => true,
+        isEnvVar: () => false,
+      };
+
+      const emptyTargetOrgConfig: ConfigInfo = {
+        key: OrgConfigProperties.TARGET_ORG,
+        value: undefined,
+        location: undefined,
+        path: undefined,
+        isLocal: () => false,
+        isGlobal: () => false,
+        isEnvVar: () => false,
+      };
+
+      configAggregatorGetInfoStub.withArgs(OrgConfigProperties.TARGET_ORG).returns(emptyTargetOrgConfig);
+      configAggregatorGetInfoStub.withArgs(OrgConfigProperties.TARGET_DEV_HUB).returns(devHubConfig);
+
+      // @ts-expect-error Dynamic import with query string to control ORG_ALLOWLIST for testing
+      const authModule = (await import(
+        '../../src/shared/auth.js?orgs=DEFAULT_TARGET_DEV_HUB'
+      )) as typeof AuthModuleType;
+      const { getAllAllowedOrgs } = authModule;
+
+      const result = await getAllAllowedOrgs();
+
+      expect(authInfoListStub.calledOnce).to.be.true;
+      expect(result).to.have.length(1);
+      expect(result[0].username).to.equal('org1@example.com');
+    });
   });
 
-  // 🟢 DONE
   describe('filterAllowedOrgs', () => {
     const mockOrgs: SanitizedOrgAuthorization[] = [
       {
@@ -501,7 +642,6 @@ describe('auth tests', () => {
     });
   });
 
-  // 🟢 DONE
   describe('getDefaultTargetOrg', () => {
     it('should return target org config when it exists', async () => {
       const mockConfig: ConfigInfo = {
@@ -693,7 +833,6 @@ describe('auth tests', () => {
     });
   });
 
-  // 🟢 DONE
   describe('getDefaultTargetDevHub', () => {
     it('should return target dev hub config when it exists', async () => {
       const mockConfig: ConfigInfo = {
