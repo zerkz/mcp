@@ -39,7 +39,7 @@
   "servers": {
     "salesforce": {
       "command": "node",
-      "args": ["/full/path/to/mcp/lib/index.js", "--toolset", "all", "--org", "ALLOW_ALL_ORGS"]
+      "args": ["/full/path/to/mcp/lib/bin/run.js", "--toolset", "all", "--org", "ALLOW_ALL_ORGS"]
     }
   }
 }
@@ -70,7 +70,7 @@ then do the following:
 ### Browser
 
 1. Build the local server: `yarn build`
-2. Start the inspector server: `mcp-inspector node lib/index.js --orgs DEFAULT_TARGET_ORG`
+2. Start the inspector server: `mcp-inspector node bin/run.js --org DEFAULT_TARGET_ORG`
 3. If successful, open printed the localhost URL in your browser:
 
 ```
@@ -93,7 +93,7 @@ MCP Inspector is up and running at http://127.0.0.1:6274
 Example calling sf-query-org from the context of an SFDX project
 
 ```shell
-mcp-inspector --cli node lib/index.js --orgs DEFAULT_TARGET_ORG \
+mcp-inspector --cli node bin/run.js --org DEFAULT_TARGET_ORG \
   --method tools/call \
   --tool-name sf-query-org \
   --tool-arg query="select id from account limit 5" \
@@ -115,7 +115,7 @@ ata/v63.0/sobjects/Account/001DK00001BFbHbYAL\"\n      },\n      \"Id\": \"001DK
 You can know more about each tool argument by looking at the their definition in code, the inspector browser UI or by listing all tools via the inspector CLI:
 
 ```shell
-mcp-inspector --cli node lib/index.js --org DEFAULT_TARGET_ORG --method tools/list
+mcp-inspector --cli node bin/run.js --org DEFAULT_TARGET_ORG --method tools/list
 ```
 
 ### Unit tests
