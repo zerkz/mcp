@@ -208,6 +208,8 @@ Includes these tools:
 
 **Cursor**
 
+[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=salesforce&config=eyJjb21tYW5kIjoibnB4IC15IEBzYWxlc2ZvcmNlL21jcCAtLW9yZ3MgREVGQVVMVF9UQVJHRVRfT1JHIn0%3D)
+
 To configure [Cursor](https://www.cursor.com/) to work with Salesforce MCP server, add this snippet to your Cursor `mcp.json` file:
 
 ```json
