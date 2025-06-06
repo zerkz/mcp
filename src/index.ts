@@ -36,17 +36,18 @@ See: https://github.com/salesforcecli/mcp
   `;
 
   public static flags = {
-    org: Flags.string({
+    orgs: Flags.string({
       char: 'o',
       summary: 'Org usernames to allow access to',
-      description: `If you need to pass more than one username/alias, specify the --org flag multiple times.
+      description: `If you need to pass more than one username/alias, separate them with commas.
 
-Special values:
+You can also use special values to control access to orgs:
 - DEFAULT_TARGET_ORG: Allow access to default orgs (global and local)
 - DEFAULT_TARGET_DEV_HUB: Allow access to default dev hubs (global and local)
 - ALLOW_ALL_ORGS: Allow access to all authenticated orgs (use with caution)`,
-      multiple: true,
       required: true,
+      multiple: true,
+      delimiter: ',',
       parse: async (input: string) => {
         if (input === 'ALLOW_ALL_ORGS') {
           ux.warn('WARNING: ALLOW_ALL_ORGS is set. This allows access to all authenticated orgs. Use with caution.');
@@ -66,11 +67,12 @@ Special values:
         );
       },
     }),
-    toolset: Flags.option({
+    toolsets: Flags.option({
       options: TOOLSETS,
       char: 't',
       summary: 'Toolset to enable',
       multiple: true,
+      delimiter: ',',
       default: ['all'],
     })(),
   };
@@ -78,22 +80,22 @@ Special values:
   public static examples = [
     {
       description: 'Start the server with all toolsets enabled and access only to the default org in the project',
-      command: '<%= config.bin %> --org DEFAULT_TARGET_ORG',
+      command: '<%= config.bin %> --orgs DEFAULT_TARGET_ORG',
     },
     {
       description: 'Allow access to the default org and "my-alias" one with only "data" tools',
-      command: '<%= config.bin %> --org DEFAULT_TARGET_DEV_HUB,my-alias --toolset data',
+      command: '<%= config.bin %> --orgs DEFAULT_TARGET_DEV_HUB,my-alias --toolsets data',
     },
     {
       description: 'Allow access to 3 specific orgs and enable all toolsets',
-      command: '<%= config.bin %> --org test-org@example.com --org my-dev-hub, --org my-alias',
+      command: '<%= config.bin %> --orgs test-org@example.com,my-dev-hub,my-alias',
     },
   ];
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(McpServerCommand);
-    Cache.getInstance().set('allowedOrgs', new Set(flags.org));
-    this.logToStderr(`Allowed orgs:\n${flags.org.map((org) => `- ${org}`).join('\n')}`);
+    Cache.getInstance().set('allowedOrgs', new Set(flags.orgs));
+    this.logToStderr(`Allowed orgs:\n${flags.orgs.map((org) => `- ${org}`).join('\n')}`);
     const server = new McpServer({
       name: 'sf-mcp-server',
       version: '0.0.6',
@@ -106,7 +108,7 @@ Special values:
     // // TODO: Should we add annotations to our tools? https://modelcontextprotocol.io/docs/concepts/tools#tool-definition-structure
     // // TODO: Move tool names into a shared file, that way if we reference them in multiple places, we can update them in one place
 
-    const enabledToolsets = new Set(flags.toolset);
+    const enabledToolsets = new Set(flags.toolsets);
     const all = enabledToolsets.has('all');
 
     // ************************

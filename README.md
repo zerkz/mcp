@@ -69,7 +69,7 @@ For the best getting-started experience, make sure that you have a Salesforce DX
        "salesforce": {
          "type": "stdio",
          "command": "npx",
-         "args": ["-y", "@salesforce/mcp", "--org", "DEFAULT_TARGET_ORG", "--toolset", "all"]
+         "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG", "--toolsets", "all"]
        }
      }
    }
@@ -77,7 +77,7 @@ For the best getting-started experience, make sure that you have a Salesforce DX
 
    You can also configure the MCP server globally by editing the VS Code [settings.json](https://code.visualstudio.com/docs/configure/settings#_settings-file-locations) file and adding a similar JSON snippet but contained in an `mcp:servers` section.
 
-   The `--org` flag is required and specifies the authorized orgs you're allowing the MCP server to access. The `--toolset` flag is optional and specifies the toolsets it should consult when determining the specific tool to run. See [Configure Orgs and Toolsets](README.md#configure-orgs-and-toolsets) for the available values for the two flags.
+   The `--orgs` argument is required and specifies the authorized orgs you're allowing the MCP server to access. The `--toolsets` argument is optional and specifies the toolsets it should consult when determining the specific tool to run. See [Configure Orgs and Toolsets](README.md#configure-orgs-and-toolsets) for the available values for the two arguments.
 
 1. Open VS Code, go to **View -> Command Palette** and enter **MCP: List Servers**.
 
@@ -108,11 +108,11 @@ You configure the Salesforce MCP server by specifying at least one authorized or
 
 ### Configure Orgs
 
-The Salesforce MCP tools require an org, and so you must include the required `--org` flag to specify at least one authorized org when you configure the MCP server. You can specify the `--org` flag multiple times to allow access to multiple orgs.
+The Salesforce MCP tools require an org, and so you must include the required `--orgs` argument to specify at least one authorized org when you configure the MCP server. Separate multiple values with commas.
 
 You must explicitly [authorize the orgs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm) on your computer before the MCP server can access them. Use the `org login web` Salesforce CLI command or the VS Code **SFDX: Authorize an Org** command from the command palette.
 
-These are the available values for the `--org` flag:
+These are the available values for the `--orgs` argument:
 
 - `DEFAULT_TARGET_ORG` - Allow access to your default org. If you've set a local default org in your DX project, the MCP server uses it. If not, the server uses a globally-set default org.
 - `DEFAULT_TARGET_DEV_HUB` - Allow access to your default Dev Hub org. If you've set a local default Dev Hub org in your DX project, the MCP server uses it. If not, the server uses a globally-set default Dev Hub org.
@@ -127,7 +127,7 @@ This example shows how to specify that the MCP tools run against your default or
          "salesforce": {
            "type": "stdio",
            "command": "npx",
-           "args": ["-y", "@salesforce/mcp", "--org", "DEFAULT_TARGET_ORG"]
+           "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG"]
          }
        }
      }
@@ -136,20 +136,20 @@ This example shows how to specify that the MCP tools run against your default or
 This sample snippet shows how to configure access to your default Dev Hub org and an org with username `test-org@example.com`:
 
 ```json
-           "args": ["-y", "@salesforce/mcp", "--org", "DEFAULT_TARGET_DEV_HUB,test-org@example.com"]
+           "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_DEV_HUB,test-org@example.com"]
 ```
 
 This sample snippet shows how to configure access to two orgs for which you specified aliases when you authorized them:
 
 ```json
-           "args": ["-y", "@salesforce/mcp", "--org", "my-scratch-org,my-dev-hub"]
+           "args": ["-y", "@salesforce/mcp", "--orgs", "my-scratch-org,my-dev-hub"]
 ```
 
 ### Configure Toolsets
 
 The Salesforce MCP Server supports **toolsets** - a way to selectively enable different groups of MCP tools based on your needs. This allows you to run the MCP server with only the tools you require, which in turn reduces the context.
 
-Use the `--toolsets` (or short name `-t`) flag to specify the toolsets when you configure the Salesforce MCP server. You can specify the flag multiple times to enable multiple toolsets. The `--toolset` flag is optional; if you don't specify it, the MCP server is configured with all toolsets.
+Use the `--toolsets` (or short name `-t`) argument to specify the toolsets when you configure the Salesforce MCP server. Separate multiple toolsets with commas. The `--toolsets` argument is optional; if you don't specify it, the MCP server is configured with all toolsets.
 
 These are the available toolsets:
 
@@ -167,7 +167,7 @@ This example shows how to enable the `data`, `orgs`, and `metadata` toolsets whe
          "salesforce": {
            "type": "stdio",
            "command": "npx",
-           "args": ["-y", "@salesforce/mcp", "--org", "DEFAULT_TARGET_ORG", "--toolset", "data,orgs,metadata"]
+           "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG", "--toolsets", "data,orgs,metadata"]
          }
        }
      }
@@ -216,7 +216,7 @@ To configure [Cursor](https://www.cursor.com/) to work with Salesforce MCP serve
     "salesforce": {
       "command": {
         "path": "npx",
-        "args": ["-y", "@salesforce/mcp", "--org", "DEFAULT_TARGET_ORG", "--toolset", "all"]
+        "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG", "--toolsets", "all"]
       }
     }
   }
@@ -232,7 +232,7 @@ To configure [Cline](https://cline.bot), add this snippet to your Cline `cline_m
   "mcpServers": {
     "salesforce": {
       "command": "npx",
-      "args": ["-y", "@salesforce/mcp", "--org", "DEFAULT_TARGET_ORG", "--toolset", "all"]
+      "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG", "--toolsets", "all"]
     }
   }
 }
