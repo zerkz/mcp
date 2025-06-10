@@ -134,15 +134,15 @@ Compiles the TypeScript code to JavaScript.
 
 #### `yarn compile --watch`
 
-Watches for file changes and compiles the TypeScript to JavaScript.
+Watches for file changes and compiles the TypeScript code to JavaScript.
 
 #### `yarn lint`
 
-Lints all the TypeScript using ESLint.
+Lints all the TypeScript code using ESLint.
 
 #### `yarn build`
 
-Compiles and lints all the TypeScript (Basically the same as `yarn compile && yarn lint`).
+Compiles and lints all the TypeScript code. (Basically the same as `yarn compile && yarn lint`).
 
 #### `yarn clean`
 
