@@ -90,11 +90,24 @@ export class Telemetry {
     this.cliId = getCliId(config.cacheDir);
   }
 
-  public sendEvent(eventName: string, attributes: Attributes): void {
+  public sendEvent(eventName: string, attributes?: Attributes): void {
     this.reporter?.sendTelemetryEvent(eventName, {
       ...attributes,
+      // Identifiers
       sessionId: this.sessionId,
       cliId: this.cliId,
+      // System information
+      version: this.config.version,
+      platform: this.config.platform,
+      arch: this.config.arch,
+      nodeVersion: process.version,
+      nodeEnv: process.env.NODE_ENV,
+      shell: this.config.shell,
+      origin: this.config.userAgent,
+      // Timestamps
+      date: new Date().toUTCString(),
+      timestamp: String(Date.now()),
+      processUptime: process.uptime() * 1000,
     });
   }
 
@@ -111,23 +124,8 @@ export class Telemetry {
 
     this.reporter.start();
 
-    this.reporter.sendTelemetryEvent('MCP_SERVER_STARTED', {
+    this.sendEvent('MCP_SERVER_STARTED', {
       ...attributes,
-      // Identifiers
-      sessionId: this.sessionId,
-      cliId: this.cliId,
-      // System information
-      version: this.config.version,
-      platform: this.config.platform,
-      arch: this.config.arch,
-      nodeVersion: process.version,
-      nodeEnv: process.env.NODE_ENV,
-      shell: this.config.shell,
-      origin: this.config.userAgent,
-      // Timestamps
-      date: new Date().toUTCString(),
-      timestamp: String(Date.now()),
-      processUptime: process.uptime() * 1000,
     });
   }
 
@@ -135,23 +133,7 @@ export class Telemetry {
     if (!this.started) return;
     this.started = false;
 
-    this.reporter?.sendTelemetryEvent('MCP_SERVER_STOPPED', {
-      // Identifiers
-      sessionId: this.sessionId,
-      cliId: this.cliId,
-      // System information
-      version: this.config.version,
-      platform: this.config.platform,
-      arch: this.config.arch,
-      nodeVersion: process.version,
-      nodeEnv: process.env.NODE_ENV,
-      shell: this.config.shell,
-      origin: this.config.userAgent,
-      // Timestamps
-      date: new Date().toUTCString(),
-      timestamp: String(Date.now()),
-      processUptime: process.uptime() * 1000,
-    });
+    this.sendEvent('MCP_SERVER_STOPPED');
 
     this.reporter?.stop();
   }
