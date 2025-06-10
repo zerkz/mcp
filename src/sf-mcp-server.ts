@@ -30,6 +30,9 @@ import { Telemetry } from './telemetry.js';
 /**
  * A server implementation that extends the base MCP server with telemetry capabilities.
  *
+ * The method overloads for `tool` are taken directly from the source code for the original McpServer. They're
+ * copied here so that the types don't get lost.
+ *
  * @extends {McpServer}
  */
 export class SfMcpServer extends McpServer {

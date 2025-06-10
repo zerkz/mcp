@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 
-// acknowledge telemetry unless the user has explicitly disabled it
-// create a session id that is sent with every event
-// use the @salesforce/telemetry package to send all events
-// find the user id stored at /Users/<username>/Library/Caches/sf/CLIID.txt
-//   this path is configurable by the user and differs by OS so we need to make a best guess at where it is and then default to a new one
-//   if the file doesn't exist.
-//   a best guess might be to access this.config.cacheDir and replace 'sf' with 'sf-mcp-server'. That will get use the OS specific paths
-//   but it won't work if the user has a different cache directory set via env var.
-
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
