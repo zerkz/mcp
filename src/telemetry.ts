@@ -106,18 +106,22 @@ export class Telemetry {
     if (this.started) return;
     this.started = true;
 
-    this.reporter = await McpTelemetryReporter.create({
-      project: PROJECT,
-      key: APP_INSIGHTS_KEY,
-      userId: this.cliId,
-      waitForConnection: true,
-    });
+    try {
+      this.reporter = await McpTelemetryReporter.create({
+        project: PROJECT,
+        key: APP_INSIGHTS_KEY,
+        userId: this.cliId,
+        waitForConnection: true,
+      });
 
-    this.reporter.start();
+      this.reporter.start();
 
-    this.sendEvent('MCP_SERVER_STARTED', {
-      ...attributes,
-    });
+      this.sendEvent('MCP_SERVER_STARTED', {
+        ...attributes,
+      });
+    } catch {
+      // connection probably failed, but we can continue without telemetry
+    }
   }
 
   public stop(): void {
