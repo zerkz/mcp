@@ -40,8 +40,6 @@ export const listAllOrgsParamsSchema = z.object({
 export type ListAllOrgsOptions = z.infer<typeof listAllOrgsParamsSchema>;
 
 export const registerToolListAllOrgs = (server: McpServer): void => {
-  // eslint-disable-next-line no-console
-  console.error('registerToolListAllOrgs');
   server.tool(
     'sf-list-all-orgs',
     `Lists all configured Salesforce orgs.
@@ -56,8 +54,6 @@ List all orgs
 `,
     listAllOrgsParamsSchema.shape,
     async ({ directory }) => {
-      // eslint-disable-next-line no-console
-      console.error('listAllOrgs', directory);
       try {
         process.chdir(directory);
         const orgs = await getAllAllowedOrgs();

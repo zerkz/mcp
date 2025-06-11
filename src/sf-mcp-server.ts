@@ -116,15 +116,22 @@ export class SfMcpServer extends McpServer {
     const cb = rest[rest.length - 1] as ToolCallback;
 
     const wrappedCb = async (args: RequestHandlerExtra<ServerRequest, ServerNotification>): Promise<CallToolResult> => {
+      const startTime = Date.now();
+      const result = await cb(args);
+      const runtimeMs = Date.now() - startTime;
+
       this.telemetry?.sendEvent('MCP_SERVER_TOOL_CALLED', {
         name,
+        runtimeMs,
       });
-      const result = await cb(args);
+
       if (result.isError) {
         this.telemetry?.sendEvent('MCP_SERVER_TOOL_ERROR', {
           name,
+          runtimeMs,
         });
       }
+
       return result;
     };
 
