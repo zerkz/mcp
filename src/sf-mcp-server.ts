@@ -87,14 +87,8 @@ export class SfMcpServer extends McpServer implements ToolMethodSignatures {
       this.telemetry?.sendEvent('TOOL_CALLED', {
         name,
         runtimeMs,
+        isError: result.isError,
       });
-
-      if (result.isError) {
-        this.telemetry?.sendEvent('TOOL_ERROR', {
-          name,
-          runtimeMs,
-        });
-      }
 
       return result;
     };
