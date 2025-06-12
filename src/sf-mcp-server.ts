@@ -18,10 +18,12 @@ import { McpServer, RegisteredTool, ToolCallback } from '@modelcontextprotocol/s
 import { CallToolResult, Implementation, ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js';
 import { ServerOptions } from '@modelcontextprotocol/sdk/server/index.js';
 import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { Telemetry } from './telemetry.js';
 
 type ToolMethodSignatures = {
   tool: McpServer['tool'];
+  connect: McpServer['connect'];
 };
 
 /**
@@ -45,7 +47,33 @@ export class SfMcpServer extends McpServer implements ToolMethodSignatures {
   public constructor(serverInfo: Implementation, options?: ServerOptions & { telemetry?: Telemetry }) {
     super(serverInfo, options);
     this.telemetry = options?.telemetry;
+    this.server.oninitialized = (): void => {
+      const clientInfo = this.server.getClientVersion();
+      if (clientInfo) {
+        this.telemetry?.addAttributes({
+          clientName: clientInfo.name,
+          clientVersion: clientInfo.version,
+        });
+      }
+      this.telemetry?.sendEvent('SERVER_START_SUCCESS');
+    };
   }
+
+  public connect: McpServer['connect'] = async (transport: Transport): Promise<void> => {
+    try {
+      await super.connect(transport);
+      if (!this.isConnected()) {
+        this.telemetry?.sendEvent('SERVER_START_ERROR', {
+          error: 'Server not connected',
+        });
+      }
+    } catch (error: unknown) {
+      this.telemetry?.sendEvent('SERVER_START_ERROR', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+    }
+  };
 
   public tool: McpServer['tool'] = (name: string, ...rest: unknown[]): RegisteredTool => {
     // Given the signature of the tool function, the last argument is always the callback

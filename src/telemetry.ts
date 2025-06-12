@@ -73,7 +73,7 @@ export class Telemetry {
   private started = false;
   private reporter?: McpTelemetryReporter;
 
-  public constructor(private readonly config: Config) {
+  public constructor(private readonly config: Config, private attributes: Attributes) {
     warn(
       'You acknowledge and agree that the MCP server may collect usage information, user environment, and crash reports for the purposes of providing services or functions that are relevant to use of the MCP server and product improvements.'
     );
@@ -81,9 +81,14 @@ export class Telemetry {
     this.cliId = getCliId(config.cacheDir);
   }
 
+  public addAttributes(attributes: Attributes): void {
+    this.attributes = { ...this.attributes, ...attributes };
+  }
+
   public sendEvent(eventName: string, attributes?: Attributes): void {
     try {
       this.reporter?.sendTelemetryEvent(eventName, {
+        ...this.attributes,
         ...attributes,
         // Identifiers
         sessionId: this.sessionId,
@@ -94,7 +99,6 @@ export class Telemetry {
         arch: this.config.arch,
         nodeVersion: process.version,
         nodeEnv: process.env.NODE_ENV,
-        shell: this.config.shell,
         origin: this.config.userAgent,
         // Timestamps
         date: new Date().toUTCString(),
