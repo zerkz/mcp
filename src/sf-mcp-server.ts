@@ -56,13 +56,13 @@ export class SfMcpServer extends McpServer implements ToolMethodSignatures {
       const result = await cb(args);
       const runtimeMs = Date.now() - startTime;
 
-      this.telemetry?.sendEvent('MCP_SERVER_TOOL_CALLED', {
+      this.telemetry?.sendEvent('TOOL_CALLED', {
         name,
         runtimeMs,
       });
 
       if (result.isError) {
-        this.telemetry?.sendEvent('MCP_SERVER_TOOL_ERROR', {
+        this.telemetry?.sendEvent('TOOL_ERROR', {
           name,
           runtimeMs,
         });
