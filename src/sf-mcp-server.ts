@@ -25,6 +25,7 @@ import {
 import { ServerOptions } from '@modelcontextprotocol/sdk/server/index.js';
 import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { ZodRawShape } from 'zod';
+import { Logger } from '@salesforce/core';
 import { Telemetry } from './telemetry.js';
 
 /**
@@ -36,6 +37,7 @@ import { Telemetry } from './telemetry.js';
  * @extends {McpServer}
  */
 export class SfMcpServer extends McpServer {
+  private logger = Logger.childFromRoot('mcp-server');
   /** Optional telemetry instance for tracking server events */
   private telemetry?: Telemetry;
 
@@ -116,9 +118,12 @@ export class SfMcpServer extends McpServer {
     const cb = rest[rest.length - 1] as ToolCallback;
 
     const wrappedCb = async (args: RequestHandlerExtra<ServerRequest, ServerNotification>): Promise<CallToolResult> => {
+      this.logger.debug(`Tool ${name} called`);
       const startTime = Date.now();
       const result = await cb(args);
       const runtimeMs = Date.now() - startTime;
+
+      this.logger.debug(`Tool ${name} completed in ${runtimeMs}ms`);
 
       this.telemetry?.sendEvent('MCP_SERVER_TOOL_CALLED', {
         name,
@@ -126,6 +131,7 @@ export class SfMcpServer extends McpServer {
       });
 
       if (result.isError) {
+        this.logger.debug(`Tool ${name} errored`);
         this.telemetry?.sendEvent('MCP_SERVER_TOOL_ERROR', {
           name,
           runtimeMs,
