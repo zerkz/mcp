@@ -15,18 +15,15 @@
  */
 
 import { McpServer, RegisteredTool, ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import {
-  CallToolResult,
-  Implementation,
-  ServerNotification,
-  ServerRequest,
-  ToolAnnotations,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolResult, Implementation, ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js';
 import { ServerOptions } from '@modelcontextprotocol/sdk/server/index.js';
 import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
-import { ZodRawShape } from 'zod';
 import { Logger } from '@salesforce/core';
 import { Telemetry } from './telemetry.js';
+
+type ToolMethodSignatures = {
+  tool: McpServer['tool'];
+};
 
 /**
  * A server implementation that extends the base MCP server with telemetry capabilities.
@@ -36,8 +33,9 @@ import { Telemetry } from './telemetry.js';
  *
  * @extends {McpServer}
  */
-export class SfMcpServer extends McpServer {
+export class SfMcpServer extends McpServer implements ToolMethodSignatures {
   private logger = Logger.childFromRoot('mcp-server');
+
   /** Optional telemetry instance for tracking server events */
   private telemetry?: Telemetry;
 
@@ -52,68 +50,7 @@ export class SfMcpServer extends McpServer {
     this.telemetry = options?.telemetry;
   }
 
-  /**
-   * Registers a zero-argument tool `name`, which will run the given function when the client calls it.
-   */
-  public tool(name: string, cb: ToolCallback): RegisteredTool;
-  /**
-   * Registers a zero-argument tool `name` (with a description) which will run the given function when the client calls it.
-   */
-  public tool(name: string, description: string, cb: ToolCallback): RegisteredTool;
-  /**
-   * Registers a tool taking either a parameter schema for validation or annotations for additional metadata.
-   * This unified overload handles both `tool(name, paramsSchema, cb)` and `tool(name, annotations, cb)` cases.
-   *
-   * Note: We use a union type for the second parameter because TypeScript cannot reliably disambiguate
-   * between ToolAnnotations and ZodRawShape during overload resolution, as both are plain object types.
-   */
-  public tool<Args extends ZodRawShape>(
-    name: string,
-    paramsSchemaOrAnnotations: Args | ToolAnnotations,
-    cb: ToolCallback<Args>
-  ): RegisteredTool;
-  /**
-   * Registers a tool `name` (with a description) taking either parameter schema or annotations.
-   * This unified overload handles both `tool(name, description, paramsSchema, cb)` and
-   * `tool(name, description, annotations, cb)` cases.
-   *
-   * Note: We use a union type for the third parameter because TypeScript cannot reliably disambiguate
-   * between ToolAnnotations and ZodRawShape during overload resolution, as both are plain object types.
-   */
-  public tool<Args extends ZodRawShape>(
-    name: string,
-    description: string,
-    paramsSchemaOrAnnotations: Args | ToolAnnotations,
-    cb: ToolCallback<Args>
-  ): RegisteredTool;
-  /**
-   * Registers a tool with both parameter schema and annotations.
-   */
-  public tool<Args extends ZodRawShape>(
-    name: string,
-    paramsSchema: Args,
-    annotations: ToolAnnotations,
-    cb: ToolCallback<Args>
-  ): RegisteredTool;
-  /**
-   * Registers a tool with description, parameter schema, and annotations.
-   */
-  public tool<Args extends ZodRawShape>(
-    name: string,
-    description: string,
-    paramsSchema: Args,
-    annotations: ToolAnnotations,
-    cb: ToolCallback<Args>
-  ): RegisteredTool;
-
-  /**
-   * Registers a tool with the server and wraps its callback with telemetry tracking
-   *
-   * @param {string} name - The name of the tool to register
-   * @param {...unknown[]} rest - Additional arguments for tool registration, with the last argument being the callback
-   * @returns {RegisteredTool} The registered tool instance
-   */
-  public tool(name: string, ...rest: unknown[]): RegisteredTool {
+  public tool: McpServer['tool'] = (name: string, ...rest: unknown[]): RegisteredTool => {
     // Given the signature of the tool function, the last argument is always the callback
     const cb = rest[rest.length - 1] as ToolCallback;
 
@@ -125,14 +62,14 @@ export class SfMcpServer extends McpServer {
 
       this.logger.debug(`Tool ${name} completed in ${runtimeMs}ms`);
 
-      this.telemetry?.sendEvent('MCP_SERVER_TOOL_CALLED', {
+      this.telemetry?.sendEvent('TOOL_CALLED', {
         name,
         runtimeMs,
       });
 
       if (result.isError) {
         this.logger.debug(`Tool ${name} errored`);
-        this.telemetry?.sendEvent('MCP_SERVER_TOOL_ERROR', {
+        this.telemetry?.sendEvent('TOOL_ERROR', {
           name,
           runtimeMs,
         });
@@ -143,5 +80,5 @@ export class SfMcpServer extends McpServer {
 
     // @ts-expect-error because we no longer know what the type of rest is
     return super.tool(name, ...rest.slice(0, -1), wrappedCb);
-  }
+  };
 }

@@ -82,27 +82,31 @@ export class Telemetry {
   }
 
   public sendEvent(eventName: string, attributes?: Attributes): void {
-    this.reporter?.sendTelemetryEvent(eventName, {
-      ...attributes,
-      // Identifiers
-      sessionId: this.sessionId,
-      cliId: this.cliId,
-      // System information
-      version: this.config.version,
-      platform: this.config.platform,
-      arch: this.config.arch,
-      nodeVersion: process.version,
-      nodeEnv: process.env.NODE_ENV,
-      shell: this.config.shell,
-      origin: this.config.userAgent,
-      // Timestamps
-      date: new Date().toUTCString(),
-      timestamp: String(Date.now()),
-      processUptime: process.uptime() * 1000,
-    });
+    try {
+      this.reporter?.sendTelemetryEvent(eventName, {
+        ...attributes,
+        // Identifiers
+        sessionId: this.sessionId,
+        cliId: this.cliId,
+        // System information
+        version: this.config.version,
+        platform: this.config.platform,
+        arch: this.config.arch,
+        nodeVersion: process.version,
+        nodeEnv: process.env.NODE_ENV,
+        shell: this.config.shell,
+        origin: this.config.userAgent,
+        // Timestamps
+        date: new Date().toUTCString(),
+        timestamp: String(Date.now()),
+        processUptime: process.uptime() * 1000,
+      });
+    } catch {
+      /* empty */
+    }
   }
 
-  public async start(attributes: Attributes): Promise<void> {
+  public async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
 
@@ -115,10 +119,6 @@ export class Telemetry {
       });
 
       this.reporter.start();
-
-      this.sendEvent('MCP_SERVER_STARTED', {
-        ...attributes,
-      });
     } catch {
       // connection probably failed, but we can continue without telemetry
     }
@@ -127,9 +127,6 @@ export class Telemetry {
   public stop(): void {
     if (!this.started) return;
     this.started = false;
-
-    this.sendEvent('MCP_SERVER_STOPPED');
-
     this.reporter?.stop();
   }
 }
