@@ -73,7 +73,7 @@ export class Telemetry {
   private started = false;
   private reporter?: McpTelemetryReporter;
 
-  public constructor(private readonly config: Config, private attributes: Attributes) {
+  public constructor(private readonly config: Config, private attributes: Attributes = {}) {
     warn(
       'You acknowledge and agree that the MCP server may collect usage information, user environment, and crash reports for the purposes of providing services or functions that are relevant to use of the MCP server and product improvements.'
     );

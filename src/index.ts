@@ -201,10 +201,16 @@ You can also use special values to control access to orgs:
   }
 
   protected async catch(error: Error): Promise<void> {
+    if (!this.telemetry) {
+      this.telemetry = new Telemetry(this.config);
+      await this.telemetry.start();
+    }
+
     this.telemetry?.sendEvent('START_ERROR', {
       error: error.message,
       stack: error.stack,
     });
+
     await super.catch(error);
   }
 }
