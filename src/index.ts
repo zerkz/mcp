@@ -125,7 +125,11 @@ You can also use special values to control access to orgs:
     const { flags } = await this.parse(McpServerCommand);
 
     if (!flags['no-telemetry']) {
-      this.telemetry = new Telemetry(this.config);
+      this.telemetry = new Telemetry(this.config, {
+        toolsets: flags.toolsets.join(', '),
+        orgs: sanitizeOrgInput(flags.orgs),
+      });
+
       await this.telemetry.start();
 
       process.stdin.on('close', (err) => {
@@ -202,17 +206,19 @@ You can also use special values to control access to orgs:
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.error(`✅ Salesforce MCP Server v${this.config.version} running on stdio`);
-    this.telemetry?.sendEvent('SERVER_START_SUCCESS', {
-      toolsets: flags.toolsets.join(', '),
-      orgs: sanitizeOrgInput(flags.orgs),
-    });
   }
 
   protected async catch(error: Error): Promise<void> {
-    this.telemetry?.sendEvent('SERVER_START_ERROR', {
+    if (!this.telemetry) {
+      this.telemetry = new Telemetry(this.config);
+      await this.telemetry.start();
+    }
+
+    this.telemetry?.sendEvent('START_ERROR', {
       error: error.message,
       stack: error.stack,
     });
+
     await super.catch(error);
   }
 }
