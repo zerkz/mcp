@@ -149,9 +149,7 @@ You can also use special values to control access to orgs:
           tools: {},
         },
       },
-      {
-        telemetry: this.telemetry,
-      }
+      { telemetry: this.telemetry }
     );
 
     // // TODO: Should we add annotations to our tools? https://modelcontextprotocol.io/docs/concepts/tools#tool-definition-structure
@@ -211,7 +209,7 @@ You can also use special values to control access to orgs:
   }
 
   protected async catch(error: Error): Promise<void> {
-    if (!this.telemetry) {
+    if (!this.telemetry && !process.argv.includes('--no-telemetry')) {
       this.telemetry = new Telemetry(this.config);
       await this.telemetry.start();
     }
