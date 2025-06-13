@@ -100,13 +100,16 @@ export class SfMcpServer extends McpServer implements ToolMethodSignatures {
         });
       }
       this.telemetry?.sendEvent('SERVER_START_SUCCESS');
-      // eslint-disable-next-line no-console
-      console.error('Token counts', this.tokenCounts);
-      // eslint-disable-next-line no-console
-      console.error(
-        'Total tokens',
-        Object.values(this.tokenCounts).reduce((acc, count) => acc + count, 0)
+
+      this.logger.debug(
+        `Total tokens: ${Object.values(this.tokenCounts)
+          .reduce((acc, count) => acc + count, 0)
+          .toString()}`
       );
+
+      for (const [name, count] of Object.entries(this.tokenCounts)) {
+        this.logger.debug(`${name}: ${count}`);
+      }
     };
   }
 
