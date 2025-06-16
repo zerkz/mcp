@@ -15,57 +15,17 @@
  */
 
 import { McpServer, RegisteredTool, ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
-import {
-  CallToolResult,
-  Implementation,
-  ServerNotification,
-  ServerRequest,
-  Tool,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolResult, Implementation, ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js';
 import { ServerOptions } from '@modelcontextprotocol/sdk/server/index.js';
 import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { Logger } from '@salesforce/core';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 import { Telemetry } from './telemetry.js';
 
 type ToolMethodSignatures = {
   tool: McpServer['tool'];
   connect: McpServer['connect'];
 };
-
-const EMPTY_OBJECT_JSON_SCHEMA = {
-  type: 'object' as const,
-};
-
-function countTokens(tool: Tool): number {
-  let totalTokens = 0;
-
-  // Count tokens in tool name
-  totalTokens += tool.name.length;
-
-  // Count tokens in description
-  if (tool.description) {
-    totalTokens += tool.description.length;
-  }
-
-  // Count tokens in input schema
-  if (tool.inputSchema) {
-    totalTokens += JSON.stringify(tool.inputSchema).length;
-  }
-
-  // Count tokens in output schema
-  if (tool.outputSchema) {
-    totalTokens += JSON.stringify(tool.outputSchema).length;
-  }
-
-  // Count tokens in annotations
-  if (tool.annotations) {
-    totalTokens += JSON.stringify(tool.annotations).length;
-  }
-
-  return totalTokens;
-}
 
 /**
  * A server implementation that extends the base MCP server with telemetry capabilities.
@@ -77,7 +37,6 @@ function countTokens(tool: Tool): number {
  */
 export class SfMcpServer extends McpServer implements ToolMethodSignatures {
   private logger = Logger.childFromRoot('mcp-server');
-  private tokenCounts: Record<string, number> = {};
 
   /** Optional telemetry instance for tracking server events */
   private telemetry?: Telemetry;
@@ -100,16 +59,6 @@ export class SfMcpServer extends McpServer implements ToolMethodSignatures {
         });
       }
       this.telemetry?.sendEvent('SERVER_START_SUCCESS');
-
-      this.logger.debug(
-        `Total tokens: ${Object.values(this.tokenCounts)
-          .reduce((acc, count) => acc + count, 0)
-          .toString()}`
-      );
-
-      for (const [name, count] of Object.entries(this.tokenCounts)) {
-        this.logger.debug(`${name}: ${count}`);
-      }
     };
   }
 
@@ -152,30 +101,6 @@ export class SfMcpServer extends McpServer implements ToolMethodSignatures {
     };
 
     // @ts-expect-error because we no longer know what the type of rest is
-    const tool = super.tool(name, ...rest.slice(0, -1), wrappedCb);
-
-    // Count the number to tokens for the tool definition
-    // Implementation copied from the typescript sdk:
-    // https://github.com/modelcontextprotocol/typescript-sdk/blob/dd69efa1de8646bb6b195ff8d5f52e13739f4550/src/server/mcp.ts#L110
-    const toolDefinition: Tool = {
-      name,
-      description: tool.description,
-      inputSchema: tool.inputSchema
-        ? (zodToJsonSchema(tool.inputSchema, {
-            strictUnions: true,
-          }) as Tool['inputSchema'])
-        : EMPTY_OBJECT_JSON_SCHEMA,
-      annotations: tool.annotations,
-    };
-
-    if (tool.outputSchema) {
-      toolDefinition.outputSchema = zodToJsonSchema(tool.outputSchema, {
-        strictUnions: true,
-      }) as Tool['outputSchema'];
-    }
-
-    this.tokenCounts[name] = countTokens(toolDefinition);
-
-    return tool;
+    return super.tool(name, ...rest.slice(0, -1), wrappedCb);
   };
 }
