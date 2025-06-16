@@ -22,10 +22,14 @@ if (!API_KEY) {
 }
 
 import { spawn } from 'node:child_process';
+import fs from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { printTable } from '@oclif/table';
 import { stdout } from '@oclif/core/ux';
+import yaml from 'yaml';
 
+import { Command, Flags, flush, handle } from '@oclif/core';
 type InvocableTool = {
   name: string;
   function: {
@@ -146,8 +150,6 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
   }));
 };
 
-const tools = await getToolsList();
-
 /**
  * Generates a response from the LLM Gateway API using the specified model.
  *
@@ -161,9 +163,10 @@ const tools = await getToolsList();
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/function-calling/} Function Calling Documentation
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/get-started/auth/#api-key-limitations} API Key Authentication Documentation
  */
-const generateResponse = async (
+const makeGatewayRequest = async (
   prompt: string,
-  model: string
+  model: string,
+  tools: InvocableTool[]
 ): Promise<{ model: string; response: GatewayResponse }> => {
   const response = await fetch(
     'https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations',
@@ -260,8 +263,8 @@ const generateResponse = async (
   };
 };
 
-async function displayModelResponses(prompt: string) {
-  const responses = await Promise.all(models.map((model) => generateResponse(prompt, model)));
+async function compareModelOutputs(prompt: string, models: string[], tools: InvocableTool[]) {
+  const responses = await Promise.all(models.map((model) => makeGatewayRequest(prompt, model, tools)));
 
   printTable({
     title: `Prompt: ${prompt}`,
@@ -285,20 +288,92 @@ async function displayModelResponses(prompt: string) {
   });
 }
 
-const models = [
-  'llmgateway__OpenAIGPT35Turbo_01_25',
-  'llmgateway__OpenAIGPT4OmniMini',
-  'llmgateway__BedrockAnthropicClaude4Sonnet',
-];
+export default class LLMGTest extends Command {
+  public static id = 'llmg';
+  public static summary = 'Test the MCP server against the LLM Gateway API';
+  public static description = `Use this script to verify that the tools in this MCP server can be invoked by various LLM models.
 
-const prompts = [
-  "What's my salesforce username?",
-  'List all my orgs',
-  'Deploy my project (~/my-project) using the my-sf-org alias',
-];
+  This script depends on a YAML file that contains the models and prompts to test.
 
-stdout();
-for (const prompt of prompts) {
-  // eslint-disable-next-line no-await-in-loop
-  await displayModelResponses(prompt);
+The file is llmg-test.yml by default but can be overridden with the --file flag.
+
+For a complete list of models, see https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/
+
+SF_LLMG_API_KEY must be set in the environment.`;
+
+  public static flags = {
+    file: Flags.file({
+      summary: 'The YAML file to use for the response',
+      description: 'Must contain array of models and prompts',
+      default: 'llmg-test.yml',
+      exists: true,
+      char: 'f',
+    }),
+    help: Flags.help({
+      summary: 'Show help',
+      description: 'Show help for the llmg command',
+      char: 'h',
+    }),
+  };
+
+  public async run(): Promise<void> {
+    const { flags } = await this.parse(LLMGTest);
+
+    const yamlContents = await fs.readFile(flags.file, 'utf8');
+    const yamlObj = yaml.parse(yamlContents) as {
+      models?: string[];
+      prompts?: string[];
+    };
+
+    if (!yamlObj.models) {
+      throw new Error('models is required');
+    }
+
+    if (!yamlObj.prompts) {
+      throw new Error('prompts is required');
+    }
+
+    stdout('Models:');
+    yamlObj.models.forEach((model) => stdout(`  - ${model}`));
+
+    stdout();
+    stdout('Prompts:');
+    yamlObj.prompts.forEach((prompt) => stdout(`  - ${prompt}`));
+
+    stdout();
+    const tools = await getToolsList();
+    stdout();
+
+    for (const prompt of yamlObj.prompts) {
+      // eslint-disable-next-line no-await-in-loop
+      await compareModelOutputs(prompt, yamlObj.models, tools);
+    }
+  }
 }
+
+LLMGTest.run(process.argv.slice(2), {
+  root: dirname(import.meta.dirname),
+  // Tell oclif what the contents of the package.json are.
+  // You could also set these in your package.json but specifying
+  // them here is useful if you're attempting to bundle your CLI
+  // without a package.json
+  pjson: {
+    name: 'llmg',
+    version: '0.0.1',
+    oclif: {
+      // Tell oclif that this is a single command CLI
+      // See: https://oclif.io/docs/command_discovery_strategies
+      commands: {
+        strategy: 'single',
+        target: 'test/llmg.js',
+      },
+    },
+  },
+}).then(
+  async () => {
+    await flush();
+  },
+  async (err) => {
+    await handle(err as Error);
+  }
+);
