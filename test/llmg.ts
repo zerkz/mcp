@@ -24,6 +24,7 @@ if (!API_KEY) {
 import { spawn } from 'node:child_process';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { printTable } from '@oclif/table';
+import { stdout } from '@oclif/core/ux';
 
 type InvocableTool = {
   name: string;
@@ -47,6 +48,44 @@ type GatewayResponse = {
     }>;
   };
 };
+
+/**
+ * Approximates token count for a JSON object using a simple algorithm.
+ * This is a rough approximation and may not match exact token counts from specific LLMs.
+ *
+ * For comparison, here are the token counts:
+ *
+ * | Tool                  | OpenAI | countTokens |
+ * |----------------------|---------|-------------|
+ * | sf-get-username      | 632     | 702         |
+ * | sf-list-all-orgs     | 262     | 283         |
+ * | sf-query-org         | 405     | 416         |
+ * | sf-assign-permission | 609     | 631         |
+ * | sf-deploy-metadata   | 779     | 809         |
+ * | sf-retrieve-metadata | 551     | 592         |
+ *
+ * @param obj - The JSON object to count tokens for
+ * @returns Approximate number of tokens
+ */
+function countTokens(obj: unknown): number {
+  // Convert object to string representation
+  const jsonStr = JSON.stringify(obj);
+
+  // Split into words and count
+  const words = jsonStr.split(/\s+/);
+
+  // Count tokens (rough approximation)
+  let tokenCount = 0;
+  for (const word of words) {
+    // Each word is roughly 1.3 tokens
+    tokenCount += Math.ceil(word.length / 4);
+
+    // Add tokens for special characters
+    tokenCount += (word.match(/[{}[\],:]/g) || []).length;
+  }
+
+  return tokenCount;
+}
 
 const getToolsList = async (): Promise<InvocableTool[]> => {
   const toolsList: string = await new Promise<string>((resolve, reject) => {
@@ -81,6 +120,22 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
   });
 
   const parsedToolsList = JSON.parse(toolsList) as { tools: Tool[] };
+
+  const toolsWithTokens = parsedToolsList.tools?.map((tool) => ({
+    tool: tool.name,
+    tokens: countTokens(tool),
+  }));
+
+  printTable({
+    title: 'Tools List',
+    data: toolsWithTokens,
+    columns: ['tool', { key: 'tokens', name: 'Approximate Tokens' }],
+    headerOptions: {
+      formatter: 'capitalCase',
+    },
+  });
+  stdout('Total tokens: ' + toolsWithTokens.reduce((acc, tool) => acc + tool.tokens, 0));
+
   return (parsedToolsList.tools ?? []).map((tool) => ({
     name: tool.name,
     function: {
@@ -199,10 +254,8 @@ const generateResponse = async (
     }
   );
 
-  const json = (await response.json()) as GatewayResponse;
-
   return {
-    response: json,
+    response: (await response.json()) as GatewayResponse,
     model,
   };
 };
@@ -244,8 +297,7 @@ const prompts = [
   'Deploy my project (~/my-project) using the my-sf-org alias',
 ];
 
-// eslint-disable-next-line no-console
-console.log();
+stdout();
 for (const prompt of prompts) {
   // eslint-disable-next-line no-await-in-loop
   await displayModelResponses(prompt);

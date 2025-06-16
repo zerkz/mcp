@@ -26,7 +26,7 @@
     "start": "yarn build && npm link && mcp-inspector sf-mcp-server",
     "test": "wireit",
     "test:only": "wireit",
-    "test:llmg": "node --loader ts-node/esm test/llmg.ts"
+    "test:llmg": "node --no-warnings --loader ts-node/esm test/llmg.ts"
   },
   "repository": "salesforcecli/mcp",
   "bugs": {
