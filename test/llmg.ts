@@ -207,18 +207,6 @@ const generateResponse = async (
   };
 };
 
-const models = [
-  'llmgateway__OpenAIGPT35Turbo_01_25',
-  'llmgateway__OpenAIGPT4OmniMini',
-  'llmgateway__BedrockAnthropicClaude4Sonnet',
-];
-
-const prompts = [
-  "What's my salesforce username?",
-  'List all my orgs',
-  'Deploy my project (~/my-project) using the my-sf-org alias',
-];
-
 async function displayModelResponses(prompt: string) {
   const responses = await Promise.all(models.map((model) => generateResponse(prompt, model)));
 
@@ -244,6 +232,20 @@ async function displayModelResponses(prompt: string) {
   });
 }
 
+const models = [
+  'llmgateway__OpenAIGPT35Turbo_01_25',
+  'llmgateway__OpenAIGPT4OmniMini',
+  'llmgateway__BedrockAnthropicClaude4Sonnet',
+];
+
+const prompts = [
+  "What's my salesforce username?",
+  'List all my orgs',
+  'Deploy my project (~/my-project) using the my-sf-org alias',
+];
+
+// eslint-disable-next-line no-console
+console.log();
 for (const prompt of prompts) {
   // eslint-disable-next-line no-await-in-loop
   await displayModelResponses(prompt);
