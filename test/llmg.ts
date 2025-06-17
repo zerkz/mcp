@@ -188,61 +188,6 @@ const makeGatewayRequest = async (
         tool_config: {
           mode: 'auto',
         },
-        //   {
-        //     type: 'function',
-        //     function: {
-        //       name: 'get_current_weather',
-        //       description: 'Get the current weather in a given location.',
-        //       parameters: {
-        //         type: 'object',
-        //         properties: {
-        //           location: {
-        //             type: 'string',
-        //             description: 'The city and state, e.g. San Francisco, CA',
-        //           },
-        //           format: {
-        //             type: 'string',
-        //             enum: ['celsius', 'fahrenheit'],
-        //             description: 'The temperature unit to use. Infer this from the users location.',
-        //           },
-        //         },
-        //       },
-        //     },
-        //   },
-        //   {
-        //     name: 'sf-get-username',
-        //     function: {
-        //       name: 'sf-get-username',
-        //       description:
-        //         'Intelligently determines the appropriate username or alias for Salesforce operations.\n\nAGENT/LLM INSTRUCTIONS:\nUse this tool when uncertain which username/org a user wants for Salesforce operations.\nThis tool handles three distinct scenarios:\n\n1. When defaultTargetOrg=true: Fetches the default target org configuration\n   - Use when user says "for my default org" or "for my default target org"\n\n2. When defaultDevHub=true: Fetches the default dev hub configuration\n   - Use when user says "for my default dev hub" or "for my default target dev hub"\n\n3. When both are false (default): Uses suggestUsername to intelligently determine the appropriate org\n   - Use when user is vague and says something like "for my org" or doesn\'t specify\n\nEXAMPLE USAGE:\n- When user says "Do X for my org" → defaultTargetOrg=false, defaultDevHub=false\n- When user says "For my default org" → defaultTargetOrg=true\n- When user says "For my default dev hub" → defaultDevHub=true',
-        //       parameters: {
-        //         type: 'object',
-        //         properties: {
-        //           defaultTargetOrg: {
-        //             type: 'boolean',
-        //             default: false,
-        //             description:
-        //               'Try to find default org\nAGENT INSTRUCTIONS:\nONLY SET TO TRUE when the user explicitly asks for the default org or default target org.\nLeave it as false when the user is vague and says something like "for my org" or "for my-alias".\n\nUSAGE EXAMPLE:\nGet username for my default org\n...for my default target org',
-        //           },
-        //           defaultDevHub: {
-        //             type: 'boolean',
-        //             default: false,
-        //             description:
-        //               'Try to find default dev hub\nAGENT INSTRUCTIONS:\nONLY SET TO TRUE when the user explicitly asks for the default dev hub or default target devhub.\nLeave it as false when the user is vague and says something like "for my org" or "for my-alias".\n\nUSAGE EXAMPLE:\nGet username for my default dev hub\n...for my default target dev hub\n...for my default devhub',
-        //           },
-        //           directory: {
-        //             type: 'string',
-        //             description:
-        //               'The directory to run this tool from.\nAGENT INSTRUCTIONS:\nWe need to know where the user wants to run this tool from.\nLook at your current Workspace Context to determine this filepath.\nALWAYS USE A FULL PATH TO THE DIRECTORY.\nUnless the user explicitly asks for a different directory, or a new directory is created from the action of a tool, use this same directory for future tool calls.\n',
-        //           },
-        //         },
-        //         required: ['directory'],
-        //         additionalProperties: false,
-        //         $schema: 'http://json-schema.org/draft-07/schema#',
-        //       },
-        //     },
-        //   },
-        // ],
         messages: [
           {
             role: 'user',
@@ -292,15 +237,15 @@ async function compareModelOutputs(prompt: string, models: string[], tools: Invo
 export default class LLMGatewayTest extends Command {
   public static id = 'llm-gateway-test';
   public static summary = 'Test the MCP server against the LLM Gateway API';
-  public static description = `Use this script to verify that the tools in this MCP server can be invoked by various LLM models.
+  public static description = `Tests that the MCP server tools are accurately invoked by various LLM models.
 
-  This script depends on a YAML file that contains the models and prompts to test.
+Configuration:
+- Uses a YAML file (default: llmg-test.yml) to specify models and test prompts
+- Override the YAML file using the --file flag
+- Requires SF_LLMG_API_KEY environment variable
 
-The file is llmg-test.yml by default but can be overridden with the --file flag.
-
-For a complete list of models, see https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/
-
-SF_LLMG_API_KEY must be set in the environment.`;
+For available models, see:
+https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/`;
 
   public static flags = {
     file: Flags.file({
@@ -311,8 +256,7 @@ SF_LLMG_API_KEY must be set in the environment.`;
       char: 'f',
     }),
     help: Flags.help({
-      summary: 'Show help',
-      description: 'Show help for the llmg command',
+      description: 'Show help',
       char: 'h',
     }),
   };
