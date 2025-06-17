@@ -25,11 +25,23 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { printTable } from '@oclif/table';
+import { printTable, TableOptions } from '@oclif/table';
 import { stdout } from '@oclif/core/ux';
 import yaml from 'yaml';
-
 import { Command, Flags, flush, handle } from '@oclif/core';
+
+const TABLE_STYLE = {
+  headerOptions: {
+    formatter: 'capitalCase',
+    color: 'cyanBright',
+  },
+  titleOptions: {
+    color: 'yellowBright',
+  },
+  borderColor: 'gray',
+  overflow: 'wrap',
+} satisfies Partial<TableOptions<Record<string, unknown>>>;
+
 type InvocableTool = {
   name: string;
   function: {
@@ -134,9 +146,7 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
     title: 'Tools List',
     data: toolsWithTokens,
     columns: ['tool', { key: 'tokens', name: 'Approximate Tokens' }],
-    headerOptions: {
-      formatter: 'capitalCase',
-    },
+    ...TABLE_STYLE,
   });
   stdout('Total tokens: ' + toolsWithTokens.reduce((acc, tool) => acc + tool.tokens, 0));
 
@@ -226,11 +236,14 @@ async function compareModelOutputs(prompt: string, models: string[], tools: Invo
         .map(([key, value]) => `${key}: ${value}`)
         .join('\n'),
     })),
-    columns: ['model', 'response', 'tool', 'arguments'],
-    headerOptions: {
-      formatter: 'capitalCase',
-    },
-    overflow: 'wrap',
+    columns: [
+      { key: 'model', width: '30%' },
+      { key: 'response', width: '25%' },
+      { key: 'tool', width: '20%' },
+      { key: 'arguments', width: '25%' },
+    ],
+    width: process.stdout.columns,
+    ...TABLE_STYLE,
   });
 }
 
