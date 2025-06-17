@@ -57,7 +57,7 @@ type GatewayResponse = {
  * Approximates token count for a JSON object using a simple algorithm.
  * This is a rough approximation and may not match exact token counts from specific LLMs.
  *
- * For comparison, here are the token counts:
+ * For comparison:
  *
  * | Tool                  | OpenAI | countTokens |
  * |----------------------|---------|-------------|
@@ -162,7 +162,7 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/} Models and Providers Documentation
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/apis/rest/#operation/chatMessages} REST API Documentation
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/function-calling/} Function Calling Documentation
- * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/get-started/auth/#api-key-limitations} API Key Authentication Documentation
+ * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/get-started/auth/#api-key-limitations} API Key Limitations Documentation
  */
 const makeGatewayRequest = async (
   prompt: string,
