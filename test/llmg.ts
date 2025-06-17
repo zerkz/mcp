@@ -85,7 +85,7 @@ function countTokens(obj: unknown): number {
     tokenCount += Math.ceil(word.length / 4);
 
     // Add tokens for special characters
-    tokenCount += (word.match(/[{}[\],:]/g) || []).length;
+    tokenCount += (word.match(/[{}[\],:]/g) ?? []).length;
   }
 
   return tokenCount;
@@ -146,6 +146,7 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
       name: tool.name,
       description: tool.description,
       parameters: tool.inputSchema,
+      annotations: tool.annotations,
     },
   }));
 };
@@ -288,8 +289,8 @@ async function compareModelOutputs(prompt: string, models: string[], tools: Invo
   });
 }
 
-export default class LLMGTest extends Command {
-  public static id = 'llmg';
+export default class LLMGatewayTest extends Command {
+  public static id = 'llm-gateway-test';
   public static summary = 'Test the MCP server against the LLM Gateway API';
   public static description = `Use this script to verify that the tools in this MCP server can be invoked by various LLM models.
 
@@ -317,7 +318,7 @@ SF_LLMG_API_KEY must be set in the environment.`;
   };
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(LLMGTest);
+    const { flags } = await this.parse(LLMGatewayTest);
 
     const yamlContents = await fs.readFile(flags.file, 'utf8');
     const yamlObj = yaml.parse(yamlContents) as {
@@ -351,18 +352,12 @@ SF_LLMG_API_KEY must be set in the environment.`;
   }
 }
 
-LLMGTest.run(process.argv.slice(2), {
+LLMGatewayTest.run(process.argv.slice(2), {
   root: dirname(import.meta.dirname),
-  // Tell oclif what the contents of the package.json are.
-  // You could also set these in your package.json but specifying
-  // them here is useful if you're attempting to bundle your CLI
-  // without a package.json
   pjson: {
-    name: 'llmg',
+    name: 'llm-gateway-test',
     version: '0.0.1',
     oclif: {
-      // Tell oclif that this is a single command CLI
-      // See: https://oclif.io/docs/command_discovery_strategies
       commands: {
         strategy: 'single',
         target: 'test/llmg.js',
