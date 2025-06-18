@@ -26,7 +26,7 @@ import fs from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { printTable, TableOptions } from '@oclif/table';
-import { stdout } from '@oclif/core/ux';
+import { stdout, colorize } from '@oclif/core/ux';
 import yaml from 'yaml';
 import { Command, Flags, flush, handle } from '@oclif/core';
 
@@ -34,9 +34,6 @@ const TABLE_STYLE = {
   headerOptions: {
     formatter: 'capitalCase',
     color: 'cyanBright',
-  },
-  titleOptions: {
-    color: 'yellowBright',
   },
   borderColor: 'gray',
   overflow: 'wrap',
@@ -52,10 +49,12 @@ type InvocableTool = {
 };
 
 type GatewayResponse = {
-  generation_details: {
+  generation_details?: {
     generations: Array<{
       content: string;
-      tool_invocations: Array<{
+      role: string;
+      tool_invocations?: Array<{
+        id: string;
         function: {
           name: string;
           arguments: string;
@@ -146,6 +145,9 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
     title: 'Tools List',
     data: toolsWithTokens,
     columns: ['tool', { key: 'tokens', name: 'Approximate Tokens' }],
+    titleOptions: {
+      color: 'yellowBright',
+    },
     ...TABLE_STYLE,
   });
   stdout('Total tokens: ' + toolsWithTokens.reduce((acc, tool) => acc + tool.tokens, 0));
@@ -162,11 +164,13 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
 };
 
 /**
- * Generates a response from the LLM Gateway API using the specified model.
+ * Makes requests to the LLM Gateway API for multiple prompts using the specified model and tools.
  *
+ * @param {string[]} prompts - Array of prompts to send to the API
  * @param {string} model - The model identifier to use for generation (e.g., 'llmgateway__AzureOpenAIGPT4Omni')
- * @returns {Promise<unknown>} The parsed JSON response from the API
- * @throws {Error} If the API request fails or returns an error
+ * @param {InvocableTool[]} tools - Array of tools that can be invoked by the model
+ * @returns {Promise<{model: string, messages: Array<{role: string, content: string}>, responses: GatewayResponse[]}>} Object containing the model used, conversation messages, and API responses
+ * @throws {Error} If any API request fails or returns an error
  *
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/get-started/#make-your-first-gateway-request} Make Your First Gateway Request Documentation
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/} Models and Providers Documentation
@@ -174,73 +178,106 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/function-calling/} Function Calling Documentation
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/get-started/auth/#api-key-limitations} API Key Limitations Documentation
  */
-const makeGatewayRequest = async (
-  prompt: string,
+const makeGatewayRequests = async (
+  prompts: string[],
   model: string,
   tools: InvocableTool[]
-): Promise<{ model: string; response: GatewayResponse }> => {
-  const response = await fetch(
-    'https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations',
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `API_KEY ${API_KEY}`,
-        'Content-Type': 'application/json',
-        // We need to figure out which tenant, context, and feature id to use
-        // Maybe this is something that will be given to us once the client registration completes???
-        'x-sfdc-core-tenant-id': 'core/prod1/00DDu0000008cuqMAA',
-        'x-sfdc-app-context': 'EinsteinGPT',
-        'x-client-feature-id': 'EinsteinDocsAnswers',
-      },
-      body: JSON.stringify({
-        model,
-        tools,
-        tool_config: {
-          mode: 'auto',
+): Promise<{ model: string; messages: Array<{ role: string; content: string }>; responses: GatewayResponse[] }> => {
+  const messages: Array<{
+    role: string;
+    content: string;
+  }> = [];
+  const responses: GatewayResponse[] = [];
+  for (const prompt of prompts) {
+    // Add the current prompt to messages
+    messages.push({
+      role: 'user',
+      content: prompt,
+    });
+
+    // eslint-disable-next-line no-await-in-loop
+    const response = await fetch(
+      'https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `API_KEY ${API_KEY}`,
+          'Content-Type': 'application/json',
+          // We need to figure out which tenant, context, and feature id to use
+          // Maybe this is something that will be given to us once the client registration completes???
+          'x-sfdc-core-tenant-id': 'core/prod1/00DDu0000008cuqMAA',
+          'x-sfdc-app-context': 'EinsteinGPT',
+          'x-client-feature-id': 'EinsteinDocsAnswers',
         },
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
+        body: JSON.stringify({
+          model,
+          tools,
+          tool_config: {
+            mode: 'auto',
           },
-        ],
-        generation_settings: {
-          max_tokens: 500,
-          temperature: 0.5,
-          parameters: {},
-        },
-      }),
+          messages,
+          generation_settings: {
+            max_tokens: 500,
+            temperature: 0.5,
+            parameters: {},
+          },
+        }),
+      }
+    );
+
+    // eslint-disable-next-line no-await-in-loop
+    const responseData = (await response.json()) as GatewayResponse;
+    responses.push(responseData);
+
+    // Add the assistant's response to messages for the next iteration
+    if (responseData.generation_details?.generations[0]?.content) {
+      messages.push({
+        role: responseData.generation_details.generations[0].role,
+        content: responseData.generation_details.generations[0].content,
+      });
     }
-  );
+  }
 
   return {
-    response: (await response.json()) as GatewayResponse,
+    responses,
     model,
+    messages,
   };
 };
 
-async function compareModelOutputs(prompt: string, models: string[], tools: InvocableTool[]) {
-  const responses = await Promise.all(models.map((model) => makeGatewayRequest(prompt, model, tools)));
+const castToArray = <T>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value]);
+
+async function compareModelOutputs(prompt: string | string[], models: string[], tools: InvocableTool[]) {
+  const prompts = castToArray(prompt);
+  const responses = await Promise.all(models.map((model) => makeGatewayRequests(prompts, model, tools)));
 
   printTable({
-    title: `Prompt: ${prompt}`,
+    title: `${colorize('yellowBright', 'Prompt')}:\n  - ${prompts.join('\n  - ')}`,
     data: responses.map((response) => ({
       model: response.model,
-      response: response.response.generation_details.generations[0].content,
-      tool: response.response.generation_details.generations[0].tool_invocations[0].function.name,
-      arguments: Object.entries(
-        JSON.parse(
-          response.response.generation_details.generations[0].tool_invocations[0].function.arguments
-        ) as Record<string, string>
-      )
-        .map(([key, value]) => `${key}: ${value}`)
-        .join('\n'),
+      chat: response.messages.map((m) => `${colorize('bold', m.role)}: ${m.content}`).join('\n\n'),
+      tools: response.responses
+        .map((r, index) => {
+          const toolInvocation = r.generation_details?.generations[0].tool_invocations?.[0];
+          if (!toolInvocation) {
+            return `Message ${index + 1}: No tool invoked`;
+          }
+
+          const toolArgs = JSON.parse(toolInvocation.function.arguments) as Record<string, string>;
+          const argsString = Object.entries(toolArgs)
+            .map(([key, value]) => `  - ${key}: ${value}`)
+            .join('\n');
+
+          return `Message ${index + 1}: ${colorize('bold', toolInvocation.function.name)}${
+            argsString ? `\n${argsString}` : ''
+          }`;
+        })
+        .join('\n\n'),
     })),
     columns: [
       { key: 'model', width: '30%' },
-      { key: 'response', width: '25%' },
-      { key: 'tool', width: '20%' },
-      { key: 'arguments', width: '25%' },
+      { key: 'chat', width: '40%' },
+      { key: 'tools', width: '30%', name: 'Tool Invocations' },
     ],
     width: process.stdout.columns,
     ...TABLE_STYLE,
@@ -256,6 +293,21 @@ Configuration:
 - Uses a YAML file (default: llmg-test.yml) to specify models and test prompts
 - Override the YAML file using the --file flag
 - Requires SF_LLMG_API_KEY environment variable
+
+YAML File Format:
+The YAML file should contain:
+- models: Array of model identifiers to test against
+- prompts: Array of test prompts (can be strings or arrays of strings for multi-turn conversations)
+
+Example YAML structure:
+  models:
+    - llmgateway__OpenAIGPT35Turbo_01_25
+    - llmgateway__OpenAIGPT4OmniMini
+  prompts:
+    - "What's my salesforce username?"
+    - ["I am a Salesforce developer", "Deploy my project"]
+    - - I am a Salesforce developer.
+      - Deploy my project
 
 For available models, see:
 https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/`;
@@ -280,7 +332,7 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
     const yamlContents = await fs.readFile(flags.file, 'utf8');
     const yamlObj = yaml.parse(yamlContents) as {
       models?: string[];
-      prompts?: string[];
+      prompts?: Array<string | string[]>;
     };
 
     if (!yamlObj.models) {
@@ -296,7 +348,13 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
 
     stdout();
     stdout('Prompts:');
-    yamlObj.prompts.forEach((prompt) => stdout(`  - ${prompt}`));
+    yamlObj.prompts.forEach((prompt) => {
+      if (Array.isArray(prompt)) {
+        stdout(`  - - ${prompt.join('\n    - ')}`);
+      } else {
+        stdout(`  - ${prompt}`);
+      }
+    });
 
     stdout();
     const tools = await getToolsList();
