@@ -68,18 +68,9 @@ type GatewayResponse = {
   };
 };
 
-const getToolsList = async (): Promise<InvocableTool[]> => {
+const getToolsList = async (entryPoint: string): Promise<InvocableTool[]> => {
   const toolsList: string = await new Promise<string>((resolve, reject) => {
-    const child = spawn('npx', [
-      'mcp-inspector',
-      '--cli',
-      'node',
-      'bin/run.js',
-      '-o',
-      'DEFAULT_TARGET_ORG',
-      '--method',
-      'tools/list',
-    ]);
+    const child = spawn('npx', ['mcp-inspector', '--cli', 'node', ...entryPoint.split(' '), '--method', 'tools/list']);
 
     let output = '';
 
@@ -310,6 +301,11 @@ For available models, see:
 https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/`;
 
   public static flags = {
+    'entry-point': Flags.string({
+      summary: 'The entry point to the MCP server',
+      default: 'bin/run.js -o DEFAULT_TARGET_ORG',
+      char: 'e',
+    }),
     file: Flags.file({
       summary: 'The YAML file to use for the response',
       description: 'Must contain array of models and prompts',
@@ -354,7 +350,7 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
     });
 
     stdout();
-    const tools = await getToolsList();
+    const tools = await getToolsList(flags['entry-point']);
     stdout();
 
     for (const prompt of yamlObj.prompts) {
