@@ -29,6 +29,9 @@ import { printTable, TableOptions } from '@oclif/table';
 import { stdout, colorize } from '@oclif/core/ux';
 import yaml from 'yaml';
 import { Command, Flags, flush, handle } from '@oclif/core';
+import { encode as encodeGPT4oMini } from 'gpt-tokenizer/model/gpt-4o-mini';
+import { encode as encodeO3Mini } from 'gpt-tokenizer/model/o3-mini';
+import { encode as encodeGPT4 } from 'gpt-tokenizer/model/gpt-4';
 
 const TABLE_STYLE = {
   headerOptions: {
@@ -45,6 +48,7 @@ type InvocableTool = {
     name: string;
     description: string | undefined;
     parameters: Tool['inputSchema'];
+    annotations: Tool['annotations'];
   };
 };
 
@@ -63,44 +67,6 @@ type GatewayResponse = {
     }>;
   };
 };
-
-/**
- * Approximates token count for a JSON object using a simple algorithm.
- * This is a rough approximation and may not match exact token counts from specific LLMs.
- *
- * For comparison:
- *
- * | Tool                  | OpenAI | countTokens |
- * |----------------------|---------|-------------|
- * | sf-get-username      | 632     | 702         |
- * | sf-list-all-orgs     | 262     | 283         |
- * | sf-query-org         | 405     | 416         |
- * | sf-assign-permission | 609     | 631         |
- * | sf-deploy-metadata   | 779     | 809         |
- * | sf-retrieve-metadata | 551     | 592         |
- *
- * @param obj - The JSON object to count tokens for
- * @returns Approximate number of tokens
- */
-function countTokens(obj: unknown): number {
-  // Convert object to string representation
-  const jsonStr = JSON.stringify(obj);
-
-  // Split into words and count
-  const words = jsonStr.split(/\s+/);
-
-  // Count tokens (rough approximation)
-  let tokenCount = 0;
-  for (const word of words) {
-    // Each word is roughly 1.3 tokens
-    tokenCount += Math.ceil(word.length / 4);
-
-    // Add tokens for special characters
-    tokenCount += (word.match(/[{}[\],:]/g) ?? []).length;
-  }
-
-  return tokenCount;
-}
 
 const getToolsList = async (): Promise<InvocableTool[]> => {
   const toolsList: string = await new Promise<string>((resolve, reject) => {
@@ -138,19 +104,31 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
 
   const toolsWithTokens = parsedToolsList.tools?.map((tool) => ({
     tool: tool.name,
-    tokens: countTokens(tool),
+    tokensGPT4oMini: encodeGPT4oMini(JSON.stringify(tool)).length,
+    tokensO3Mini: encodeO3Mini(JSON.stringify(tool)).length,
+    tokensGPT4: encodeGPT4(JSON.stringify(tool)).length,
   }));
+  toolsWithTokens.push({
+    tool: colorize('bold', 'TOTAL'),
+    tokensGPT4oMini: toolsWithTokens.reduce((acc, tool) => acc + tool.tokensGPT4oMini, 0),
+    tokensO3Mini: toolsWithTokens.reduce((acc, tool) => acc + tool.tokensO3Mini, 0),
+    tokensGPT4: toolsWithTokens.reduce((acc, tool) => acc + tool.tokensGPT4, 0),
+  });
 
   printTable({
     title: 'Tools List',
     data: toolsWithTokens,
-    columns: ['tool', { key: 'tokens', name: 'Approximate Tokens' }],
+    columns: [
+      'tool',
+      { key: 'tokensGPT4oMini', name: 'GPT 4o Mini' },
+      { key: 'tokensO3Mini', name: 'O3 Mini' },
+      { key: 'tokensGPT4', name: 'GPT 4' },
+    ],
     titleOptions: {
       color: 'yellowBright',
     },
     ...TABLE_STYLE,
   });
-  stdout('Total tokens: ' + toolsWithTokens.reduce((acc, tool) => acc + tool.tokens, 0));
 
   return (parsedToolsList.tools ?? []).map((tool) => ({
     name: tool.name,
@@ -161,6 +139,57 @@ const getToolsList = async (): Promise<InvocableTool[]> => {
       annotations: tool.annotations,
     },
   }));
+};
+
+const createRequestHeaders = (): Record<string, string> => ({
+  Authorization: `API_KEY ${API_KEY}`,
+  'Content-Type': 'application/json',
+  // We need to figure out which tenant, context, and feature id to use
+  // Maybe this is something that will be given to us once the client registration completes???
+  'x-sfdc-core-tenant-id': 'core/prod1/00DDu0000008cuqMAA',
+  'x-sfdc-app-context': 'EinsteinGPT',
+  'x-client-feature-id': 'EinsteinDocsAnswers',
+});
+
+const createRequestBody = (
+  model: string,
+  tools: InvocableTool[],
+  messages: Array<{ role: string; content: string }>
+): string =>
+  JSON.stringify({
+    model,
+    tools,
+    tool_config: {
+      mode: 'auto',
+    },
+    messages,
+    generation_settings: {
+      max_tokens: 500,
+      temperature: 0.5,
+      parameters: {},
+    },
+  });
+
+const makeSingleGatewayRequest = async (
+  model: string,
+  tools: InvocableTool[],
+  messages: Array<{ role: string; content: string }>
+): Promise<GatewayResponse> => {
+  const response = await fetch(
+    'https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations',
+    {
+      method: 'POST',
+      headers: createRequestHeaders(),
+      body: createRequestBody(model, tools, messages),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const responseData = await response.json();
+  return responseData as GatewayResponse;
 };
 
 /**
@@ -183,11 +212,9 @@ const makeGatewayRequests = async (
   model: string,
   tools: InvocableTool[]
 ): Promise<{ model: string; messages: Array<{ role: string; content: string }>; responses: GatewayResponse[] }> => {
-  const messages: Array<{
-    role: string;
-    content: string;
-  }> = [];
+  const messages: Array<{ role: string; content: string }> = [];
   const responses: GatewayResponse[] = [];
+
   for (const prompt of prompts) {
     // Add the current prompt to messages
     messages.push({
@@ -196,37 +223,7 @@ const makeGatewayRequests = async (
     });
 
     // eslint-disable-next-line no-await-in-loop
-    const response = await fetch(
-      'https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `API_KEY ${API_KEY}`,
-          'Content-Type': 'application/json',
-          // We need to figure out which tenant, context, and feature id to use
-          // Maybe this is something that will be given to us once the client registration completes???
-          'x-sfdc-core-tenant-id': 'core/prod1/00DDu0000008cuqMAA',
-          'x-sfdc-app-context': 'EinsteinGPT',
-          'x-client-feature-id': 'EinsteinDocsAnswers',
-        },
-        body: JSON.stringify({
-          model,
-          tools,
-          tool_config: {
-            mode: 'auto',
-          },
-          messages,
-          generation_settings: {
-            max_tokens: 500,
-            temperature: 0.5,
-            parameters: {},
-          },
-        }),
-      }
-    );
-
-    // eslint-disable-next-line no-await-in-loop
-    const responseData = (await response.json()) as GatewayResponse;
+    const responseData = await makeSingleGatewayRequest(model, tools, messages);
     responses.push(responseData);
 
     // Add the assistant's response to messages for the next iteration
@@ -263,7 +260,7 @@ async function compareModelOutputs(prompt: string | string[], models: string[], 
             return `Message ${index + 1}: No tool invoked`;
           }
 
-          const toolArgs = JSON.parse(toolInvocation.function.arguments) as Record<string, string>;
+          const toolArgs = JSON.parse(toolInvocation.function.arguments ?? '{}') as Record<string, string>;
           const argsString = Object.entries(toolArgs)
             .map(([key, value]) => `  - ${key}: ${value}`)
             .join('\n');
@@ -335,12 +332,12 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
       prompts?: Array<string | string[]>;
     };
 
-    if (!yamlObj.models) {
-      throw new Error('models is required');
+    if (!yamlObj.models?.length) {
+      throw new Error('At least one model is required');
     }
 
-    if (!yamlObj.prompts) {
-      throw new Error('prompts is required');
+    if (!yamlObj.prompts?.length) {
+      throw new Error('At least one prompt is required');
     }
 
     stdout('Models:');

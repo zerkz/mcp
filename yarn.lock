@@ -5548,6 +5548,11 @@ got@^13:
     p-cancelable "^3.0.0"
     responselike "^3.0.0"
 
+gpt-tokenizer@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/gpt-tokenizer/-/gpt-tokenizer-3.0.1.tgz#19fa42314d15b69a1e82d3898336b5ba1f4f2c86"
+  integrity sha512-5jdaspBq/w4sWw322SvQj1Fku+CN4OAfYZeeEg8U7CWtxBz+zkxZ3h0YOHD43ee+nZYZ5Ud70HRN0ANcdIj4qg==
+
 graceful-fs@4.2.10:
   version "4.2.10"
   resolved "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.10.tgz"
