@@ -25,7 +25,7 @@ import { SfMcpServer } from '../../sf-mcp-server.js';
 const runAgentTestsParam = z.object({
   agentApiName: z.string().describe(
     `Agent test to run
-            if unsure, list all files matching the pattern *.aiEvaluationDefinition-meta.xml
+            if unsure, list all files matching the pattern **/aiEvaluationDefinitions/*.aiEvaluationDefinition-meta.xml
             only one test can be executed at a time
 `
   ),
@@ -46,10 +46,10 @@ export type AgentRunTests = z.infer<typeof runAgentTestsParam>;
  * Returns:
  * - textResponse: Test result.
  */
-export const registerToolRunAgentTest = (server: SfMcpServer): void => {
+export const registerToolTestAgent = (server: SfMcpServer): void => {
   server.tool(
-    'sf-run-agent-tests',
-    `Run Agent tests in an org.
+    'sf-test-agent',
+    `Agent Tests Tools.
 
 AGENT INSTRUCTIONS:
 If the user doesn't specify what to test, take context from the currently open file
