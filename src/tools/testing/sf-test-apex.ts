@@ -40,7 +40,7 @@ RunSpecifiedTests="Run the Apex tests I specify, these will be specified in the 
     .describe(
       `Apex tests classes to run.
             if Running all tests, all tests should be listed
-            if unsure, find apex classes matching the pattern **/classes/*.cls, that include the @isTest decorator in the file and then join their test names together with ','
+            Run the tests, find apex classes matching the pattern **/classes/*.cls, that include the @isTest decorator in the file and then join their test names together with ','
 `
     )
     .optional(),
@@ -106,7 +106,7 @@ What are the results for 707XXXXXXXXXXXX
 `,
     runApexTestsParam.shape,
     {
-      title: 'Apex Test Tools',
+      title: 'Apex Tests',
       openWorldHint: false,
     },
     async ({

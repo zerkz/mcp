@@ -210,7 +210,7 @@ Includes these tools:
 
 Includes these tools:
 
-- `sf-test-agent` - Executes agent tests in your org.
+- `sf-test-agents` - Executes agent tests in your org.
 - `sf-test-apex` - Executes apex tests in your org
 
 ## Configure Other Clients to Use the Salesforce DX MCP Server

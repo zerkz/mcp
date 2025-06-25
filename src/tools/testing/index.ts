@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 export * from './sf-test-apex.js';
-export * from './sf-test-agent.js';
+export * from './sf-test-agents.js';
