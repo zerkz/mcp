@@ -31,6 +31,10 @@ const runAgentTestsParam = z.object({
   ),
   usernameOrAlias: usernameOrAliasParam,
   directory: directoryParam,
+  async: z
+    .boolean()
+    .default(false)
+    .describe('Whether to wait for the tests to finish (false) or quickly return only the test id (true)'),
 });
 
 export type AgentRunTests = z.infer<typeof runAgentTestsParam>;
@@ -60,13 +64,14 @@ this should be chosen when a file in the 'aiEvaluationDefinitions' directory is 
 EXAMPLE USAGE:
 Run tests for the X agent
 Run this test
+start myAgentTest and don't wait for results
 `,
     runAgentTestsParam.shape,
     {
       title: 'Run Agent Tests',
       openWorldHint: false,
     },
-    async ({ usernameOrAlias, agentApiName, directory }) => {
+    async ({ usernameOrAlias, agentApiName, directory, async }) => {
       if (!usernameOrAlias)
         return textResponse(
           'The usernameOrAlias parameter is required, if the user did not specify one use the #sf-get-username tool',
@@ -79,9 +84,15 @@ Run this test
 
       try {
         const agentTester = new AgentTester(connection);
-        const test = await agentTester.start(agentApiName);
-        const result = await agentTester.poll(test.runId, { timeout: Duration.minutes(10) });
-        return textResponse(`Test result: ${JSON.stringify(result)}`);
+
+        if (async) {
+          const startResult = await agentTester.start(agentApiName);
+          return textResponse(`Test Run: ${JSON.stringify(startResult)}`);
+        } else {
+          const test = await agentTester.start(agentApiName);
+          const result = await agentTester.poll(test.runId, { timeout: Duration.minutes(10) });
+          return textResponse(`Test result: ${JSON.stringify(result)}`);
+        }
       } catch (e) {
         return textResponse(`Failed to run Agent Tests: ${e instanceof Error ? e.message : 'Unknown error'}`, true);
       }
