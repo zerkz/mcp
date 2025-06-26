@@ -22,12 +22,13 @@ import * as core from './tools/core/index.js';
 import * as orgs from './tools/orgs/index.js';
 import * as data from './tools/data/index.js';
 import * as users from './tools/users/index.js';
+import * as testing from './tools/testing/index.js';
 import * as metadata from './tools/metadata/index.js';
 import Cache from './shared/cache.js';
 import { Telemetry } from './telemetry.js';
 import { SfMcpServer } from './sf-mcp-server.js';
 
-const TOOLSETS = ['all', 'orgs', 'data', 'users', 'metadata'] as const;
+const TOOLSETS = ['all', 'testing', 'orgs', 'data', 'users', 'metadata', 'experimental'] as const;
 
 /**
  * Sanitizes an array of org usernames by replacing specific orgs with a placeholder.
@@ -152,9 +153,6 @@ You can also use special values to control access to orgs:
       { telemetry: this.telemetry }
     );
 
-    // // TODO: Should we add annotations to our tools? https://modelcontextprotocol.io/docs/concepts/tools#tool-definition-structure
-    // // TODO: Move tool names into a shared file, that way if we reference them in multiple places, we can update them in one place
-
     const enabledToolsets = new Set(flags.toolsets);
     const all = enabledToolsets.has('all');
 
@@ -164,6 +162,7 @@ You can also use special values to control access to orgs:
     this.logToStderr('Registering core tools');
     // get username
     core.registerToolGetUsername(server);
+    core.registerToolResume(server);
 
     // ************************
     // ORG TOOLS
@@ -193,6 +192,15 @@ You can also use special values to control access to orgs:
     }
 
     // ************************
+    // testing TOOLS
+    // ************************
+    if (all || enabledToolsets.has('testing')) {
+      this.logToStderr('Registering testing tools');
+      testing.registerToolRunApexTest(server);
+      testing.registerToolRunAgentTest(server);
+    }
+
+    // ************************
     // METADATA TOOLS
     // ************************
     if (all || enabledToolsets.has('metadata')) {
@@ -201,6 +209,17 @@ You can also use special values to control access to orgs:
       metadata.registerToolDeployMetadata(server);
       // retrieve metadata
       metadata.registerToolRetrieveMetadata(server);
+    }
+
+    // ************************
+    // EXPERIMENTAL TOOLS
+    //
+    // This toolset needs to be explicitly enabled ('all' will not include it)
+    // Tools don't need to be in an 'experimental' directory, only registered here
+    // ************************
+    if (enabledToolsets.has('experimental')) {
+      this.logToStderr('Registering experimental tools');
+      // Add any experimental tools here
     }
 
     const transport = new StdioServerTransport();
