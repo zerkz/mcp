@@ -7,6 +7,7 @@ Use this guide to learn how to contribute to the Salesforce DX MCP Server.
 [One-Time Setup](#one-time-setup)</br>
 [Quick Start](#quick-start)</br>
 [Testing](#testing)</br>
+[Debugging](#debugging)</br>
 [Useful Yarn Commands](#useful-yarn-commands)</br>
 
 <hr>
@@ -122,6 +123,32 @@ mcp-inspector --cli node bin/run.js --orgs DEFAULT_TARGET_ORG --method tools/lis
 ### Unit Tests
 
 Unit tests are run with `yarn test` and use the Mocha test framework. Tests are located in the `test` directory and are named with the pattern, `test/**/*.test.ts`.
+
+### Debugging
+> [!NOTE]  
+> This section assumes you are using Visual Studio Code.
+
+You can use the vscode debugger along with the MCP inspector CLI to step through code in tools:
+
+1. Make a change in a tool file
+2. Set a breakpoint
+3. Build the local server: `yarn compile`
+4. Call the tool via the MCP inspector CLI
+5. In vscode debugger, select the `Attach to Debug Hook Process` launch config and start debugging.
+
+```shell
+MCP_SERVER_REQUEST_TIMEOUT=120000 mcp-inspector --cli node --inspect-brk bin/run.js -o DEFAULT_TARGET_ORG --no-telemetry --method tools/call \
+  --tool-name sf-query-org \
+  --tool-arg directory="/path/to/sfdx-project" \
+  --tool-arg query="select name from Property__c order by name asc" \
+  --tool-arg usernameOrAlias=dreamhouse
+```
+
+`MCP_SERVER_REQUEST_TIMEOUT` is set to 120000ms (2 minutes) to allow longer debugging sessions without having the MCP inspector client timeout.
+For other configuration values see: https://github.com/modelcontextprotocol/inspector?tab=readme-ov-file#configuration
+
+> [!IMPORTANT]  
+> You need to compile the server via `yarn compile` after every change in a TS file, otherwise breakpoints in TS files might not match the running JS code.
 
 ## Useful yarn Commands
 
