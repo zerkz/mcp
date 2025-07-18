@@ -49,4 +49,3 @@ node_modules
 
 .cursor
 src/tools/test.ts
-llmg-test.yml
