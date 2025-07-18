@@ -70,7 +70,14 @@ type GatewayResponse = {
 
 const getToolsList = async (entryPoint: string): Promise<InvocableTool[]> => {
   const toolsList: string = await new Promise<string>((resolve, reject) => {
-    const child = spawn('npx', ['mcp-inspector', '--cli', 'node', ...entryPoint.split(' '), '--method', 'tools/list']);
+    const child = spawn('npx', [
+      '@modelcontextprotocol/inspector',
+      '--cli',
+      'node',
+      ...entryPoint.split(' '),
+      '--method',
+      'tools/list',
+    ]);
 
     let output = '';
 
