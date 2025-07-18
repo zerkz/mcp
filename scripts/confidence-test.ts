@@ -22,12 +22,13 @@ import { makeGatewayRequests } from './utils/gateway.js';
 import { getToolsList, InvocableTool } from './utils/tools.js';
 import { TABLE_STYLE } from './utils/table.js';
 import { readYamlFile } from './utils/yaml.js';
+import { Model } from './utils/models.js';
 
 const castToArray = <T>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value]);
 
 async function compareModelOutputs(
   prompt: string | string[],
-  models: string[],
+  models: Model[],
   tools: InvocableTool[]
 ): Promise<Record<string, string[]>> {
   const prompts = castToArray(prompt);
@@ -137,7 +138,7 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
 
     const yamlObj = await readYamlFile<{
       'expected-tool': string;
-      models: string[];
+      models: Model[];
       prompts: Array<string | string[]>;
     }>(flags.file);
 

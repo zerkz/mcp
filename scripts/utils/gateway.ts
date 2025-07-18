@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import { Model } from './models.js';
+import { InvocableTool } from './tools.js';
+
 const API_KEY = process.env.SF_LLMG_API_KEY;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -48,7 +51,7 @@ const createRequestHeaders = (): Record<string, string> => ({
 });
 
 const createRequestBody = (
-  model: string,
+  model: Model,
   tools: InvocableTool[],
   messages: Array<{ role: string; content: string }>
 ): string =>
@@ -67,7 +70,7 @@ const createRequestBody = (
   });
 
 const makeSingleGatewayRequest = async (
-  model: string,
+  model: Model,
   tools: InvocableTool[],
   messages: Array<{ role: string; content: string }>
 ): Promise<GatewayResponse> => {
@@ -105,9 +108,9 @@ const makeSingleGatewayRequest = async (
  */
 export const makeGatewayRequests = async (
   prompts: string[],
-  model: string,
+  model: Model,
   tools: InvocableTool[]
-): Promise<{ model: string; messages: Array<{ role: string; content: string }>; responses: GatewayResponse[] }> => {
+): Promise<{ model: Model; messages: Array<{ role: string; content: string }>; responses: GatewayResponse[] }> => {
   const messages: Array<{ role: string; content: string }> = [];
   const responses: GatewayResponse[] = [];
 
