@@ -33,7 +33,7 @@ export type InvocableTool = {
   };
 };
 
-export const getToolsList = async ({ verbose }: { verbose: boolean }): Promise<InvocableTool[]> => {
+export const getToolsList = async (): Promise<InvocableTool[]> => {
   const toolsList: string = await new Promise<string>((resolve, reject) => {
     const child = spawn('npx', [
       '@modelcontextprotocol/inspector',
@@ -67,35 +67,33 @@ export const getToolsList = async ({ verbose }: { verbose: boolean }): Promise<I
 
   const parsedToolsList = JSON.parse(toolsList) as { tools: Tool[] };
 
-  if (verbose) {
-    const toolsWithTokens = parsedToolsList.tools?.map((tool) => ({
-      tool: tool.name,
-      tokensGPT4oMini: encodeGPT4oMini(JSON.stringify(tool)).length,
-      tokensO3Mini: encodeO3Mini(JSON.stringify(tool)).length,
-      tokensGPT4: encodeGPT4(JSON.stringify(tool)).length,
-    }));
-    toolsWithTokens.push({
-      tool: colorize('bold', 'TOTAL'),
-      tokensGPT4oMini: toolsWithTokens.reduce((acc, tool) => acc + tool.tokensGPT4oMini, 0),
-      tokensO3Mini: toolsWithTokens.reduce((acc, tool) => acc + tool.tokensO3Mini, 0),
-      tokensGPT4: toolsWithTokens.reduce((acc, tool) => acc + tool.tokensGPT4, 0),
-    });
+  const toolsWithTokens = parsedToolsList.tools?.map((tool) => ({
+    tool: tool.name,
+    tokensGPT4oMini: encodeGPT4oMini(JSON.stringify(tool)).length,
+    tokensO3Mini: encodeO3Mini(JSON.stringify(tool)).length,
+    tokensGPT4: encodeGPT4(JSON.stringify(tool)).length,
+  }));
+  toolsWithTokens.push({
+    tool: colorize('bold', 'TOTAL'),
+    tokensGPT4oMini: toolsWithTokens.reduce((acc, tool) => acc + tool.tokensGPT4oMini, 0),
+    tokensO3Mini: toolsWithTokens.reduce((acc, tool) => acc + tool.tokensO3Mini, 0),
+    tokensGPT4: toolsWithTokens.reduce((acc, tool) => acc + tool.tokensGPT4, 0),
+  });
 
-    printTable({
-      title: 'Tools List',
-      data: toolsWithTokens,
-      columns: [
-        'tool',
-        { key: 'tokensGPT4oMini', name: 'GPT 4o Mini' },
-        { key: 'tokensO3Mini', name: 'O3 Mini' },
-        { key: 'tokensGPT4', name: 'GPT 4' },
-      ],
-      titleOptions: {
-        color: 'yellowBright',
-      },
-      ...TABLE_STYLE,
-    });
-  }
+  printTable({
+    title: 'Tools List',
+    data: toolsWithTokens,
+    columns: [
+      'tool',
+      { key: 'tokensGPT4oMini', name: 'GPT 4o Mini' },
+      { key: 'tokensO3Mini', name: 'O3 Mini' },
+      { key: 'tokensGPT4', name: 'GPT 4' },
+    ],
+    titleOptions: {
+      color: 'yellowBright',
+    },
+    ...TABLE_STYLE,
+  });
 
   return (parsedToolsList.tools ?? []).map((tool) => ({
     name: tool.name,

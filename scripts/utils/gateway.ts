@@ -84,6 +84,10 @@ const makeSingleGatewayRequest = async (
   );
 
   if (!response.ok) {
+    // eslint-disable-next-line no-console
+    console.error(`Error making request to LLM Gateway API: ${response.status} ${response.statusText}`);
+    // eslint-disable-next-line no-console
+    console.error('Response body:', JSON.stringify(await response.json(), null, 2));
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
 
@@ -109,10 +113,20 @@ const makeSingleGatewayRequest = async (
 export const makeGatewayRequests = async (
   prompts: string[],
   model: Model,
-  tools: InvocableTool[]
+  tools: InvocableTool[],
+  initialContext?: string[]
 ): Promise<{ model: Model; messages: Array<{ role: string; content: string }>; responses: GatewayResponse[] }> => {
   const messages: Array<{ role: string; content: string }> = [];
   const responses: GatewayResponse[] = [];
+
+  if (initialContext) {
+    await makeSingleGatewayRequest(model, tools, [
+      {
+        role: 'user',
+        content: initialContext?.join('\n'),
+      },
+    ]);
+  }
 
   for (const prompt of prompts) {
     // Add the current prompt to messages
