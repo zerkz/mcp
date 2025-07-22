@@ -111,7 +111,7 @@ const makeSingleGatewayRequest = async (
  * @see {@link https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/get-started/auth/#api-key-limitations} API Key Limitations Documentation
  */
 export const makeGatewayRequests = async (
-  prompts: string[],
+  utterances: string[],
   model: Model,
   tools: InvocableTool[],
   initialContext?: string[]
@@ -119,20 +119,13 @@ export const makeGatewayRequests = async (
   const messages: Array<{ role: string; content: string }> = [];
   const responses: GatewayResponse[] = [];
 
-  if (initialContext) {
-    await makeSingleGatewayRequest(model, tools, [
-      {
-        role: 'user',
-        content: initialContext?.join('\n'),
-      },
-    ]);
-  }
+  const allUtterances = initialContext ? [...initialContext, ...utterances] : utterances;
 
-  for (const prompt of prompts) {
-    // Add the current prompt to messages
+  for (const utterance of allUtterances) {
+    // Add the current utterance to messages
     messages.push({
       role: 'user',
-      content: prompt,
+      content: utterance,
     });
 
     // eslint-disable-next-line no-await-in-loop

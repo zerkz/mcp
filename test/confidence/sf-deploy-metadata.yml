@@ -1,0 +1,40 @@
+models:
+  # - llmgateway__OpenAIGPT35Turbo_01_25
+  # - llmgateway__OpenAIGPT4OmniMini
+  - llmgateway__OpenAIGPT41Nano
+  # - llmgateway__BedrockAnthropicClaude4Sonnet
+
+initial-context:
+  - 'My current OS is macos. I am working in a workspace with the following folders: /Users/sf-dev/dreamhouse-lwc'
+
+tests:
+  - utterances:
+      - My org alias is dreamhouse. Deploy the Lightning Web Components in force-app/main/default/lwc to the dreamhouse org.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/lwc
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+    allowed-tools:
+      - sf-list-all-orgs
+  # - utterances:
+  #     - Deploy my changes to the dreamhouse org
+  #   expected-tool: sf-deploy-metadata
+  #   expected-parameters:
+  #     directory: ^/.*dreamhouse-lwc$
+  #     usernameOrAlias: dreamhouse
+  #   expected-tool-confidence: 100
+  #   expected-parameter-confidence: 100
+  # - utterances:
+  #     - Hello. Who are you and what can you do?
+  #     - I am a salesforce developer working on the dreamhouse-lwc project. My org alias is dreamhouse.
+  #     - I want to deploy only the Lightning Web Components in force-app/main/default/lwc to dreamhouse.
+  #   expected-tool: sf-deploy-metadata
+  #   expected-parameters:
+  #     sourceDir: force-app/main/default/lwc
+  #     directory: ^/.*dreamhouse-lwc$
+  #     usernameOrAlias: dreamhouse
+  #   expected-tool-confidence: 100
+  #   expected-parameter-confidence: 100
