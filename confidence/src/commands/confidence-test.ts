@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-import { dirname } from 'node:path';
 import { printTable } from '@oclif/table';
 import { stdout, colorize } from '@oclif/core/ux';
-import { Command, Flags, flush, handle } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 import { z } from 'zod';
-import { makeGatewayRequests } from './utils/gateway.js';
-import { getToolsList, InvocableTool } from './utils/tools.js';
-import { TABLE_STYLE } from './utils/table.js';
-import { readYamlFile } from './utils/yaml.js';
-import { Model } from './utils/models.js';
+import { makeGatewayRequests } from '../utils/gateway.js';
+import { getToolsList, InvocableTool } from '../utils/tools.js';
+import { TABLE_STYLE } from '../utils/table.js';
+import { readYamlFile } from '../utils/yaml.js';
+import { Model } from '../utils/models.js';
 
 const Spec = z.object({
   models: z.array(z.custom<Model>()),
@@ -161,7 +160,6 @@ async function compareModelOutputs(
 }
 
 export default class ConfidenceTest extends Command {
-  public static id = 'confidence-test';
   public static summary = 'Test the MCP server against the LLM Gateway API';
   public static description = `Tests that the MCP server tools are accurately invoked by various LLM models.
 
@@ -452,23 +450,23 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
   }
 }
 
-ConfidenceTest.run(process.argv.slice(2), {
-  root: dirname(import.meta.dirname),
-  pjson: {
-    name: 'confidence-test',
-    version: '0.0.1',
-    oclif: {
-      commands: {
-        strategy: 'single',
-        target: 'scripts/confidence-test.js',
-      },
-    },
-  },
-}).then(
-  async () => {
-    await flush();
-  },
-  async (err) => {
-    await handle(err as Error);
-  }
-);
+// ConfidenceTest.run(process.argv.slice(2), {
+//   root: dirname(import.meta.dirname),
+//   pjson: {
+//     name: 'confidence-test',
+//     version: '0.0.1',
+//     oclif: {
+//       commands: {
+//         strategy: 'single',
+//         target: 'scripts/confidence-test.js',
+//       },
+//     },
+//   },
+// }).then(
+//   async () => {
+//     await flush();
+//   },
+//   async (err) => {
+//     await handle(err as Error);
+//   }
+// );

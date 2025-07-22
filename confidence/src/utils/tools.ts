@@ -61,7 +61,7 @@ export const getToolsList = async (): Promise<{
       if (code === 0) {
         resolve(output);
       } else {
-        reject(new Error(`Process exited with code ${code}`));
+        reject(new Error(`Process exited with code ${code ?? 'unknown'}`));
       }
     });
   });
