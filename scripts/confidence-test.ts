@@ -42,6 +42,16 @@ const Spec = z.object({
 
 type Spec = z.infer<typeof Spec>;
 
+type TestCase = {
+  readable: string;
+  utterances: string[];
+  expectedTool: string;
+  expectedParameters?: Record<string, string>;
+  expectedToolConfidence: number;
+  expectedParameterConfidence: number;
+  allowedTools: string[];
+};
+
 const castToArray = <T>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value]);
 
 const groupBy = <T, K extends string | number | symbol>(array: T[], key: (item: T) => K): Record<K, T[]> =>
@@ -59,6 +69,39 @@ const makeReadableParameters = (param: Record<string, string>): string =>
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `  - ${key}: ${value}`)
     .join('\n');
+
+const countRunsThatPassParameterMatching = (
+  testSpec: TestCase,
+  runs: Array<{ model: string; invocations: Array<{ tool: string; parameters: Record<string, string> }> }>
+): number =>
+  runs.filter((run) =>
+    Object.entries(testSpec.expectedParameters ?? {}).every(([key, value]) =>
+      run.invocations.some(
+        (inv) =>
+          inv.tool === testSpec.expectedTool && inv.parameters[key] && new RegExp(value).test(inv.parameters[key])
+      )
+    )
+  ).length;
+
+const countRunsThatPassToolMatching = (
+  testSpec: TestCase,
+  runs: Array<{ model: string; invocations: Array<{ tool: string; parameters: Record<string, string> }> }>
+): number =>
+  runs.filter(
+    ({ invocations }) =>
+      invocations.some((inv) => inv.tool === testSpec.expectedTool) &&
+      invocations.every((inv) => testSpec.allowedTools.includes(inv.tool))
+  ).length;
+
+const filterFailingTests = (
+  passFailMap: Map<string, { tools: boolean; parameters: boolean }>,
+  testIndex: Map<string, TestCase>,
+  type: 'tools' | 'parameters'
+): TestCase[] =>
+  Array.from(passFailMap.entries())
+    .filter(([, result]) => !result[type])
+    .map(([key]) => testIndex.get(key))
+    .filter((test) => test !== undefined);
 
 async function compareModelOutputs(
   utterances: string | string[],
@@ -123,7 +166,7 @@ export default class ConfidenceTest extends Command {
   public static description = `Tests that the MCP server tools are accurately invoked by various LLM models.
 
 Configuration:
-- Uses a YAML file to specify models and test utterances
+- Uses a YAML file to specify models and test cases
 - Requires SF_LLMG_API_KEY environment variable
 
 YAML File Format:
@@ -135,6 +178,8 @@ The YAML file should contain:
   - expected-tool: String identifying the expected tool to be invoked
   - expected-parameters: Optional object with expected parameter key-value pairs
   - expected-tool-confidence: Number representing the minimum confidence level (0-100)
+  - expected-parameter-confidence: Optional number for parameter confidence (defaults to expected-tool-confidence)
+  - allowed-tools: Optional array of tool names that are acceptable in addition to the expected tool
 
 Example YAML structure:
 models:
@@ -194,24 +239,29 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
       this.error(`Invalid spec file: ${flags.file}\n${spec.error.message}`);
     }
 
-    stdout();
-    const mcpTools = await getToolsList();
-    stdout();
+    const { tools: mcpTools, tokens } = await getToolsList();
+    if (flags.verbose) {
+      stdout();
+      printTable({
+        title: 'Tools List',
+        data: tokens,
+        columns: [
+          'tool',
+          { key: 'tokensGPT4oMini', name: 'GPT 4o Mini' },
+          { key: 'tokensO3Mini', name: 'O3 Mini' },
+          { key: 'tokensGPT4', name: 'GPT 4' },
+        ],
+        titleOptions: {
+          color: 'yellowBright',
+        },
+        ...TABLE_STYLE,
+      });
+      stdout();
+    }
 
     // Generate unique keys for each utterance to track runs
     // This allows us to group runs by utterance and display results clearly
-    const testIndex = new Map<
-      string,
-      {
-        readable: string;
-        utterances: string[];
-        expectedTool: string;
-        expectedParameters?: Record<string, string>;
-        expectedToolConfidence: number;
-        expectedParameterConfidence: number;
-        allowedTools: string[];
-      }
-    >();
+    const testIndex = new Map<string, TestCase>();
 
     const runPromises = spec.data.tests.flatMap((test) => {
       const utteranceKey = Math.random().toString(36).substring(2, 15);
@@ -281,45 +331,37 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
             Object.entries(result.invocations).map(([model, invocations]) => ({
               model,
               invocations,
-              // tools: invocations.map((inv) => inv.tool),
-              // parameters: invocations.map((inv) => inv.parameters),
             }))
           ),
         (r) => r.model
       );
 
-      const toolTableData = Object.entries(runsByModel).map(([model, runs]) => {
-        const actualToolCount = runs.filter(
-          ({ invocations }) =>
-            invocations.some((inv) => inv.tool === testSpec.expectedTool) &&
-            invocations.every((inv) => testSpec.allowedTools.includes(inv.tool))
-        ).length;
-        const totalRuns = runs.length;
-        const confidence = Math.round((actualToolCount / totalRuns) * 100);
-
-        if (confidence < testSpec.expectedToolConfidence) {
-          passFailMap.set(utteranceKey, {
-            ...(passFailMap.get(utteranceKey) ?? { tools: true, parameters: true }),
-            tools: false,
-          });
-        }
-
-        return {
-          model,
-          expectedTool: testSpec.expectedTool,
-          actualTools: runs
-            .map((r, idx) => `Run ${idx + 1}: ${r.invocations.flatMap((inv) => inv.tool).join(', ')}`)
-            .join('\n'),
-          count: `${actualToolCount}/${totalRuns}`,
-          actualConfidence: `${confidence}%`,
-          expectedConfidence: `${testSpec.expectedToolConfidence}%`,
-          status: confidence >= testSpec.expectedToolConfidence ? colorize('green', 'PASS') : colorize('red', 'FAIL'),
-        };
-      });
-
       printTable({
         title: 'Tool Invocations',
-        data: toolTableData,
+        data: Object.entries(runsByModel).map(([model, runs]) => {
+          const actualToolCount = countRunsThatPassToolMatching(testSpec, runs);
+          const totalRuns = runs.length;
+          const confidence = Math.round((actualToolCount / totalRuns) * 100);
+
+          if (confidence < testSpec.expectedToolConfidence) {
+            passFailMap.set(utteranceKey, {
+              ...(passFailMap.get(utteranceKey) ?? { tools: true, parameters: true }),
+              tools: false,
+            });
+          }
+
+          return {
+            model,
+            expectedTool: testSpec.expectedTool,
+            actualTools: runs
+              .map((r, idx) => `Run ${idx + 1}: ${r.invocations.flatMap((inv) => inv.tool).join(', ')}`)
+              .join('\n'),
+            count: `${actualToolCount}/${totalRuns}`,
+            actualConfidence: `${confidence}%`,
+            expectedConfidence: `${testSpec.expectedToolConfidence}%`,
+            status: confidence >= testSpec.expectedToolConfidence ? colorize('green', 'PASS') : colorize('red', 'FAIL'),
+          };
+        }),
         columns: [
           { key: 'model', name: 'Model', width: '30%' },
           { key: 'expectedTool', name: 'Expected Tool Invocation', width: '15%' },
@@ -334,50 +376,40 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
       });
 
       if (testSpec.expectedParameters) {
-        const paramTableData = Object.entries(runsByModel).map(([model, runs]) => {
-          const runsThatMatchParameters = runs.filter((run) =>
-            Object.entries(testSpec.expectedParameters ?? {}).every(([key, value]) =>
-              run.invocations.some(
-                (inv) =>
-                  inv.tool === testSpec.expectedTool &&
-                  inv.parameters[key] &&
-                  new RegExp(value).test(inv.parameters[key])
-              )
-            )
-          ).length;
-
-          const totalRuns = runs.length;
-          const confidence = Math.round((runsThatMatchParameters / totalRuns) * 100);
-
-          if (confidence < testSpec.expectedParameterConfidence) {
-            passFailMap.set(utteranceKey, {
-              ...(passFailMap.get(utteranceKey) ?? { tools: true, parameters: true }),
-              parameters: false,
-            });
-          }
-
-          return {
-            model,
-            count: `${runsThatMatchParameters}/${totalRuns}`,
-            expectedParameters: makeReadableParameters(testSpec.expectedParameters ?? {}),
-            actualParameters: runs
-              .map(
-                (r, idx) =>
-                  `Run ${idx + 1}:\n${makeReadableParameters(
-                    r.invocations.find((inv) => inv.tool === testSpec.expectedTool)?.parameters ?? {}
-                  )}`
-              )
-              .join('\n'),
-            actualConfidence: `${confidence}%`,
-            expectedConfidence: `${testSpec.expectedParameterConfidence}%`,
-            status:
-              confidence >= testSpec.expectedParameterConfidence ? colorize('green', 'PASS') : colorize('red', 'FAIL'),
-          };
-        });
-
         printTable({
           title: 'Parameter Matching',
-          data: paramTableData,
+          data: Object.entries(runsByModel).map(([model, runs]) => {
+            const runsThatMatchParameters = countRunsThatPassParameterMatching(testSpec, runs);
+            const totalRuns = runs.length;
+            const confidence = Math.round((runsThatMatchParameters / totalRuns) * 100);
+
+            if (confidence < testSpec.expectedParameterConfidence) {
+              passFailMap.set(utteranceKey, {
+                ...(passFailMap.get(utteranceKey) ?? { tools: true, parameters: true }),
+                parameters: false,
+              });
+            }
+
+            return {
+              model,
+              count: `${runsThatMatchParameters}/${totalRuns}`,
+              expectedParameters: makeReadableParameters(testSpec.expectedParameters ?? {}),
+              actualParameters: runs
+                .map(
+                  (r, idx) =>
+                    `Run ${idx + 1}:\n${makeReadableParameters(
+                      r.invocations.find((inv) => inv.tool === testSpec.expectedTool)?.parameters ?? {}
+                    )}`
+                )
+                .join('\n'),
+              actualConfidence: `${confidence}%`,
+              expectedConfidence: `${testSpec.expectedParameterConfidence}%`,
+              status:
+                confidence >= testSpec.expectedParameterConfidence
+                  ? colorize('green', 'PASS')
+                  : colorize('red', 'FAIL'),
+            };
+          }),
           columns: [
             { key: 'model', name: 'Model', width: '30%' },
             { key: 'expectedParameters', name: 'Expected Parameters', width: '15%' },
@@ -393,15 +425,8 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
       }
     }
 
-    const failingToolTests = Array.from(passFailMap.entries())
-      .filter(([, result]) => !result.tools)
-      .map(([key]) => testIndex.get(key))
-      .filter((test) => test !== undefined);
-
-    const failingParameterTests = Array.from(passFailMap.entries())
-      .filter(([, result]) => !result.parameters)
-      .map(([key]) => testIndex.get(key))
-      .filter((test) => test !== undefined);
+    const failingToolTests = filterFailingTests(passFailMap, testIndex, 'tools');
+    const failingParameterTests = filterFailingTests(passFailMap, testIndex, 'parameters');
 
     if (failingToolTests.length > 0) {
       stdout();
