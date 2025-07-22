@@ -1,3 +1,21 @@
+## [0.14.3](https://github.com/salesforcecli/mcp/compare/0.14.2...0.14.3) (2025-07-22)
+
+### Bug Fixes
+
+- **deps:** bump form-data from 4.0.0 to 4.0.4 ([70c072e](https://github.com/salesforcecli/mcp/commit/70c072e02d7badf6cd6cfed40f78640a5ccec2f1))
+
+## [0.14.2](https://github.com/salesforcecli/mcp/compare/0.14.1...0.14.2) (2025-07-19)
+
+### Bug Fixes
+
+- **deps:** bump @salesforce/source-tracking from 7.4.7 to 7.4.8 ([b1d5097](https://github.com/salesforcecli/mcp/commit/b1d50973ee26eab27239ad15a882d44e9b992428))
+
+## [0.14.1](https://github.com/salesforcecli/mcp/compare/0.14.0...0.14.1) (2025-07-19)
+
+### Bug Fixes
+
+- **deps:** bump @oclif/core from 4.5.0 to 4.5.1 ([3a5c502](https://github.com/salesforcecli/mcp/commit/3a5c5029488cc68d3e5add9c9926118337a1e016))
+
 # [0.14.0](https://github.com/salesforcecli/mcp/compare/0.13.2...0.14.0) (2025-07-15)
 
 ### Features
