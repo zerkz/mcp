@@ -20,7 +20,7 @@ module.exports = {
     project: [
       './tsconfig.json',
       './test/tsconfig.json',
-      './scripts/tsconfig.json', // Add this line
+      './confidence/tsconfig.json', // Add this line
     ],
   },
 };

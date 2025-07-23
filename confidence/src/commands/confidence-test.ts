@@ -35,6 +35,8 @@ const Spec = z.object({
       'expected-tool-confidence': z.number(),
       'expected-parameter-confidence': z.number().optional(),
       'allowed-tools': z.array(z.string()).optional(),
+      skip: z.boolean().optional(),
+      only: z.boolean().optional(),
     })
   ),
 });
@@ -261,7 +263,11 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
     // This allows us to group runs by utterance and display results clearly
     const testIndex = new Map<string, TestCase>();
 
-    const runPromises = spec.data.tests.flatMap((test) => {
+    const filteredTests = spec.data.tests.some((test) => test.only)
+      ? [spec.data.tests.find((test) => test.only)!]
+      : spec.data.tests.filter((test) => !test.skip);
+
+    const runPromises = filteredTests.flatMap((test) => {
       const utteranceKey = Math.random().toString(36).substring(2, 15);
       testIndex.set(utteranceKey, {
         readable: `${colorize('yellowBright', 'Utterance')}:\n  - ${castToArray(test.utterances).join('\n  - ')}`,

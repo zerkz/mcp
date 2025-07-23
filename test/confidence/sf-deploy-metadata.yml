@@ -2,12 +2,13 @@ models:
   # - llmgateway__OpenAIGPT35Turbo_01_25
   # - llmgateway__OpenAIGPT4OmniMini
   - llmgateway__OpenAIGPT41Nano
-  # - llmgateway__BedrockAnthropicClaude4Sonnet
+  - llmgateway__BedrockAnthropicClaude4Sonnet
 
 initial-context:
   - 'My current OS is macos. I am working in a workspace with the following folders: /Users/sf-dev/dreamhouse-lwc'
 
 tests:
+  # Deploy specific source directory (Lightning Web Components)
   - utterances:
       - My org alias is dreamhouse. Deploy the Lightning Web Components in force-app/main/default/lwc to the dreamhouse org.
     expected-tool: sf-deploy-metadata
@@ -19,22 +20,151 @@ tests:
     expected-parameter-confidence: 100
     allowed-tools:
       - sf-list-all-orgs
-  # - utterances:
-  #     - Deploy my changes to the dreamhouse org
-  #   expected-tool: sf-deploy-metadata
-  #   expected-parameters:
-  #     directory: ^/.*dreamhouse-lwc$
-  #     usernameOrAlias: dreamhouse
-  #   expected-tool-confidence: 100
-  #   expected-parameter-confidence: 100
-  # - utterances:
-  #     - Hello. Who are you and what can you do?
-  #     - I am a salesforce developer working on the dreamhouse-lwc project. My org alias is dreamhouse.
-  #     - I want to deploy only the Lightning Web Components in force-app/main/default/lwc to dreamhouse.
-  #   expected-tool: sf-deploy-metadata
-  #   expected-parameters:
-  #     sourceDir: force-app/main/default/lwc
-  #     directory: ^/.*dreamhouse-lwc$
-  #     usernameOrAlias: dreamhouse
-  #   expected-tool-confidence: 100
-  #   expected-parameter-confidence: 100
+
+  # Deploy multiple source directories
+  - utterances:
+      - Deploy the classes and lwc folders to my dreamhouse org.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/classes,force-app/main/default/lwc
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy using manifest file
+  - utterances:
+      - Deploy the components specified in my package.xml manifest to dreamhouse.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      manifest: /Users/sf-dev/dreamhouse-lwc/package.xml
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy all local changes (no sourceDir or manifest specified)
+  - utterances:
+      - Deploy my changes to the dreamhouse org.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy with no tests run
+  - utterances:
+      - Deploy my changes to the dreamhouse org without running any tests.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+      apexTestLevel: NoTestRun
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy with local tests
+  - utterances:
+      - Deploy force-app/main/default/classes to the dreamhouse org and run all local tests.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/classes
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+      apexTestLevel: RunLocalTests
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy with all org tests
+  - utterances:
+      - Deploy the apex classes and run all tests in the org including managed packages.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/classes
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+      apexTestLevel: RunAllTestsInOrg
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy with specific apex tests
+  - utterances:
+      - Deploy my classes to the dreamhouse org and run the PropertyControllerTest and BrokerControllerTest apex tests.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/classes
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+      apexTests: PropertyControllerTest,BrokerControllerTest
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy with single apex test
+  - utterances:
+      - Deploy the PropertyController class and run PropertyControllerTest to the dreamhouse org.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/classes
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+      apexTests: PropertyControllerTest
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy specific file type mentioned
+  - utterances:
+      - Deploy the flows to the dreamhouse org.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/flows
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy with multiple metadata types
+  - utterances:
+      - Deploy the objects, classes, and tabs to the dreamhouse org.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/objects,force-app/main/default/classes,force-app/main/default/tabs
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy with complex folder structure
+  - utterances:
+      - Deploy the PropertyController and PropertyTrigger from the classes folder to the dreamhouse org and run PropertyControllerTest, PropertyTriggerTest, and PropertyUtilTest.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/classes
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+      apexTests: PropertyControllerTest,PropertyTriggerTest,PropertyUtilTest
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100
+
+  # Deploy without org specified (should use sf-get-username)
+  - utterances:
+      - Deploy the lwc components.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app/main/default/lwc
+      directory: /Users/sf-dev/dreamhouse-lwc
+    expected-tool-confidence: 90
+    expected-parameter-confidence: 70
+    allowed-tools:
+      - sf-get-username
+
+  # Deploy with relative path specification
+  - utterances:
+      - Deploy everything in the force-app directory to the dreamhouse org.
+    expected-tool: sf-deploy-metadata
+    expected-parameters:
+      sourceDir: force-app
+      directory: /Users/sf-dev/dreamhouse-lwc
+      usernameOrAlias: dreamhouse
+    expected-tool-confidence: 100
+    expected-parameter-confidence: 100

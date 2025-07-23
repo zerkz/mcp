@@ -43,11 +43,9 @@ type GatewayResponse = {
 const createRequestHeaders = (): Record<string, string> => ({
   Authorization: `API_KEY ${API_KEY}`,
   'Content-Type': 'application/json',
-  // We need to figure out which tenant, context, and feature id to use
-  // Maybe this is something that will be given to us once the client registration completes???
   'x-sfdc-core-tenant-id': 'core/prod1/00DDu0000008cuqMAA',
   'x-sfdc-app-context': 'EinsteinGPT',
-  'x-client-feature-id': 'EinsteinDocsAnswers',
+  'x-client-feature-id': 'platform-cli-mcp-tests',
 });
 
 const createRequestBody = (
