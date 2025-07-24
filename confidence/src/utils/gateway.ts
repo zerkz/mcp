@@ -43,7 +43,10 @@ type GatewayResponse = {
 const createRequestHeaders = (): Record<string, string> => ({
   Authorization: `API_KEY ${API_KEY}`,
   'Content-Type': 'application/json',
+  // taken from example in docs. Theoretically we'd have our own after fully onboarding?
+  // https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/access/gateway-access/
   'x-sfdc-core-tenant-id': 'core/prod1/00DDu0000008cuqMAA',
+  // https://git.soma.salesforce.com/einsteingpt/module-llmg-cts-registry/blob/master/docs/features/PLATFORM_C_L_I_M_C_P_TESTS.yml
   'x-sfdc-app-context': 'EinsteinGPT',
   'x-client-feature-id': 'platform-cli-mcp-tests',
 });
