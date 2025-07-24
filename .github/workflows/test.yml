@@ -34,8 +34,7 @@ jobs:
 
   # Run the confidence tests after the unit tests
   confidence-tests:
-    # needs: [linux-unit-tests, changes]
-    needs: [changes]
+    needs: [linux-unit-tests, changes]
     runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.confidence-changed == 'true'}}
     env:
