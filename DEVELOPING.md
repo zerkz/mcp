@@ -140,7 +140,7 @@ Confidence tests validate that the MCP server tools are accurately invoked by va
 
 3. **Run a specific confidence test**:
    ```shell
-   yarn test:confidence --file test/confidence/sf-deploy-metadata.yml --verbose
+   yarn test:confidence --file test/confidence/sf-deploy-metadata.yml
    ```
 
 #### Test Structure
@@ -154,7 +154,7 @@ Confidence tests are defined in YAML files located in `test/confidence/`. Each t
 The tests run multiple iterations (default: 5) to calculate confidence levels and ensure consistent tool selection across different model runs. This can be adjusted by passing the `--runs` flag when running the tests, like this:
 
 ```shell
-yarn test:confidence --verbose test/confidence/sf-deploy-metadata.yml --runs 2
+yarn test:confidence test/confidence/sf-deploy-metadata.yml --runs 2
 ```
 
 #### Understanding Test Results

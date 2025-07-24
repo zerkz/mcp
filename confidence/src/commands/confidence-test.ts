@@ -223,11 +223,11 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
       default: 5,
       char: 'r',
     }),
-    verbose: Flags.boolean({
-      summary: 'Enable verbose output',
-      description: 'If true, will print additional information about the test runs',
+    concise: Flags.boolean({
+      summary: 'Suppress detailed output for each test run',
+      description: 'If true, will print only the final results of each test run',
       default: false,
-      char: 'v',
+      char: 'c',
     }),
   };
 
@@ -240,7 +240,7 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
     }
 
     const { tools: mcpTools, tokens } = await getToolsList();
-    if (flags.verbose) {
+    if (!flags.concise) {
       stdout();
       printTable({
         title: 'Tools List',
@@ -298,7 +298,7 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
       stdout(colorize('bold', ' ─── Results for Test Case ───'));
       stdout(testSpec.readable);
 
-      if (flags.verbose) {
+      if (!flags.concise) {
         for (const run of testRuns) {
           printTable({
             title: `Run #${run.idx + 1}`,
