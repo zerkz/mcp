@@ -37,6 +37,8 @@ jobs:
     needs: [linux-unit-tests, changes]
     runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.confidence-changed == 'true'}}
+    env:
+      SF_LLMG_API_KEY: ${{ secrets.SF_LLMG_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
