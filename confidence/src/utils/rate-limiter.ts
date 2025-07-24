@@ -259,6 +259,15 @@ export class RateLimiter {
         return;
       } catch (error) {
         lastError = error as Error;
+        // eslint-disable-next-line no-console
+        console.error(`Error executing request: ${lastError.message}`, {
+          attempt,
+          status: lastError instanceof RateLimitError ? lastError.status : undefined,
+          retryAfter: lastError instanceof RateLimitError ? lastError.retryAfter : undefined,
+        });
+        // eslint-disable-next-line no-console
+        console.error('Full error details:', lastError);
+
         if (attempt < this.retryConfig.maxRetries && RateLimiter.isRetryableError(error)) {
           this.recordRetryAttempt();
           const delay = this.calculateRetryDelay(attempt);
