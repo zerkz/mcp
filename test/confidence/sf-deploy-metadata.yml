@@ -1,16 +1,36 @@
 models:
   # - llmgateway__OpenAIGPT35Turbo_01_25
   # - llmgateway__OpenAIGPT4OmniMini
-  - llmgateway__OpenAIGPT41Nano
+  # - llmgateway__OpenAIGPT41Nano
   - llmgateway__BedrockAnthropicClaude4Sonnet
 
 initial-context:
-  - 'My current OS is macos. I am working in a workspace with the following folders: /Users/sf-dev/dreamhouse-lwc'
+  - 'My current OS is macos. I am working in a workspace with the following folders: /Users/sf-dev/dreamhouse-lwc
+    My org alias is dreamhouse.
+    This is the structure of /Users/sf-dev/dreamhouse-lwc:
+    package.xml
+    force-app/main/default/applications
+    force-app/main/default/aura
+    force-app/main/default/aura/pageTemplate_2_7_3
+    force-app/main/default/classes
+    force-app/main/default/contentassets
+    force-app/main/default/cspTrustedSites
+    force-app/main/default/flexipages
+    force-app/main/default/flows
+    force-app/main/default/layouts
+    force-app/main/default/lwc
+    force-app/main/default/messageChannels
+    force-app/main/default/objects
+    force-app/main/default/permissionsets
+    force-app/main/default/prompts
+    force-app/main/default/remoteSiteSettings
+    force-app/main/default/staticresources
+    force-app/main/default/tabs'
 
 tests:
   # Deploy specific source directory (Lightning Web Components)
   - utterances:
-      - My org alias is dreamhouse. Deploy the Lightning Web Components in force-app/main/default/lwc to the dreamhouse org.
+      - Deploy the Lightning Web Components in force-app/main/default/lwc to the dreamhouse org.
     expected-tool: sf-deploy-metadata
     expected-parameters:
       sourceDir: force-app/main/default/lwc
@@ -88,7 +108,7 @@ tests:
 
   # Deploy with all org tests
   - utterances:
-      - Deploy the apex classes and run all tests in the org including managed packages.
+      - Deploy the apex classes and run all tests in the dreamhouse org including managed packages.
     expected-tool: sf-deploy-metadata
     expected-parameters:
       sourceDir: force-app/main/default/classes
