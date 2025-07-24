@@ -259,54 +259,47 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
       stdout();
     }
 
-    // Generate unique keys for each utterance to track runs
-    // This allows us to group runs by utterance and display results clearly
-    const testIndex = new Map<string, TestCase>();
-
     const filteredTests = spec.data.tests.some((test) => test.only)
       ? [spec.data.tests.find((test) => test.only)!]
       : spec.data.tests.filter((test) => !test.skip);
 
-    const logStatus = (message: string): void => {
-      if (flags.verbose) {
-        stdout(colorize('yellowBright', `Status: ${message}`));
+    // Generate unique keys for each test case to track runs
+    // This allows us to group runs by test case and display results clearly
+    const testIndex = new Map<string, TestCase>();
+
+    // Map to store test results by testCaseKey
+    // Each entry will contain an array of runs for that test case
+    // This allows us to aggregate results and print them after all runs are complete
+    const testResultsByTestCaseKey = new Map<
+      string,
+      Array<{
+        idx: number;
+        testCaseKey: string;
+        invocations: Record<string, Array<{ tool: string; parameters: Record<string, string> }>>;
+        tableData: Array<{ model: Model; chat: string; tools: string }>;
+      }>
+    >();
+
+    // Map to track pass/fail status by testCaseKey
+    const passFailMap = new Map<string, { tools: boolean; parameters: boolean }>();
+
+    const maybePrintTestResults = (testCaseKey: string): void => {
+      const testRuns = (testResultsByTestCaseKey.get(testCaseKey) ?? []).sort((a, b) => a.idx - b.idx);
+      if (testRuns.length < flags.runs) {
+        return; // Not enough runs yet to print results
       }
-    };
 
-    let completedRuns = 0;
-    const totalTestCases = filteredTests.length * flags.runs;
-    logStatus(`Running ${totalTestCases} test cases...`);
-    const runPromises = filteredTests.flatMap((test) => {
-      const utteranceKey = Math.random().toString(36).substring(2, 15);
-      testIndex.set(utteranceKey, {
-        readable: `${colorize('yellowBright', 'Utterance')}:\n  - ${castToArray(test.utterances).join('\n  - ')}`,
-        utterances: castToArray(test.utterances),
-        expectedTool: test['expected-tool'],
-        expectedParameters: test['expected-parameters'],
-        expectedToolConfidence: test['expected-tool-confidence'],
-        expectedParameterConfidence: test['expected-parameter-confidence'] ?? test['expected-tool-confidence'],
-        allowedTools: [test['expected-tool'], ...(test['allowed-tools'] ?? [])],
-      });
-      return Array.from({ length: flags.runs }, (_, idx) =>
-        compareModelOutputs(test.utterances, spec.data, mcpTools).then(({ invocations, tableData }) => {
-          completedRuns++;
-          logStatus(`Completed run ${completedRuns} of ${totalTestCases}`);
-          return {
-            idx,
-            utteranceKey,
-            invocations,
-            tableData,
-          };
-        })
-      );
-    });
+      const testSpec = testIndex.get(testCaseKey);
+      if (!testSpec) {
+        stdout(colorize('red', `No test spec found for utterance key: ${testCaseKey}`));
+        return;
+      }
 
-    const results = groupBy(await Promise.all(runPromises), (r) => r.utteranceKey);
+      stdout(colorize('bold', ' ─── Results for Test Case ───'));
+      stdout(testSpec.readable);
 
-    if (flags.verbose) {
-      for (const [utteranceKey, runs] of Object.entries(results)) {
-        stdout(testIndex.get(utteranceKey)?.readable ?? 'Unknown Test Case');
-        for (const run of runs) {
+      if (flags.verbose) {
+        for (const run of testRuns) {
           printTable({
             title: `Run #${run.idx + 1}`,
             data: run.tableData,
@@ -320,36 +313,14 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
           });
         }
       }
-    }
-
-    stdout();
-    stdout(colorize('bold', 'SUMMARY'));
-    stdout(`Total Runs: ${Object.values(results).flatMap((m) => Object.values(m)).length}`);
-    stdout();
-
-    // Initialize all utterance keys as passing
-    const passFailMap = new Map<string, { tools: boolean; parameters: boolean }>(
-      Object.keys(results).map((key) => [key, { tools: true, parameters: true }])
-    );
-
-    for (const [utteranceKey, testResults] of Object.entries(results)) {
-      const testSpec = testIndex.get(utteranceKey);
-      if (!testSpec) {
-        stdout(colorize('red', `No test spec found for utterance key: ${utteranceKey}`));
-        continue;
-      }
-
-      stdout(testSpec.readable);
 
       const runsByModel = groupBy(
-        testResults
-          .sort((a, b) => a.idx - b.idx)
-          .flatMap((result) =>
-            Object.entries(result.invocations).map(([model, invocations]) => ({
-              model,
-              invocations,
-            }))
-          ),
+        testRuns.flatMap((result) =>
+          Object.entries(result.invocations).map(([model, invocations]) => ({
+            model,
+            invocations,
+          }))
+        ),
         (r) => r.model
       );
 
@@ -361,8 +332,8 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
           const confidence = Math.round((actualToolCount / totalRuns) * 100);
 
           if (confidence < testSpec.expectedToolConfidence) {
-            passFailMap.set(utteranceKey, {
-              ...(passFailMap.get(utteranceKey) ?? { tools: true, parameters: true }),
+            passFailMap.set(testCaseKey, {
+              ...(passFailMap.get(testCaseKey) ?? { tools: true, parameters: true }),
               tools: false,
             });
           }
@@ -401,8 +372,8 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
             const confidence = Math.round((runsThatMatchParameters / totalRuns) * 100);
 
             if (confidence < testSpec.expectedParameterConfidence) {
-              passFailMap.set(utteranceKey, {
-                ...(passFailMap.get(utteranceKey) ?? { tools: true, parameters: true }),
+              passFailMap.set(testCaseKey, {
+                ...(passFailMap.get(testCaseKey) ?? { tools: true, parameters: true }),
                 parameters: false,
               });
             }
@@ -440,7 +411,40 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
           width: process.stdout.columns,
         });
       }
-    }
+    };
+
+    await Promise.all(
+      filteredTests.flatMap((test) => {
+        const testCaseKey = Math.random().toString(36).substring(2, 15);
+        testIndex.set(testCaseKey, {
+          readable: `${colorize('yellowBright', 'Utterance')}:\n  - ${castToArray(test.utterances).join('\n  - ')}`,
+          utterances: castToArray(test.utterances),
+          expectedTool: test['expected-tool'],
+          expectedParameters: test['expected-parameters'],
+          expectedToolConfidence: test['expected-tool-confidence'],
+          expectedParameterConfidence: test['expected-parameter-confidence'] ?? test['expected-tool-confidence'],
+          allowedTools: [test['expected-tool'], ...(test['allowed-tools'] ?? [])],
+        });
+        passFailMap.set(testCaseKey, {
+          tools: true,
+          parameters: true,
+        });
+        return Array.from({ length: flags.runs }, (_, idx) =>
+          compareModelOutputs(test.utterances, spec.data, mcpTools).then(({ invocations, tableData }) => {
+            testResultsByTestCaseKey.set(testCaseKey, [
+              ...(testResultsByTestCaseKey.get(testCaseKey) ?? []),
+              {
+                idx,
+                testCaseKey,
+                invocations,
+                tableData,
+              },
+            ]);
+            maybePrintTestResults(testCaseKey);
+          })
+        );
+      })
+    );
 
     const failingToolTests = filterFailingTests(passFailMap, testIndex, 'tools');
     const failingParameterTests = filterFailingTests(passFailMap, testIndex, 'parameters');
@@ -468,24 +472,3 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
     }
   }
 }
-
-// ConfidenceTest.run(process.argv.slice(2), {
-//   root: dirname(import.meta.dirname),
-//   pjson: {
-//     name: 'confidence-test',
-//     version: '0.0.1',
-//     oclif: {
-//       commands: {
-//         strategy: 'single',
-//         target: 'scripts/confidence-test.js',
-//       },
-//     },
-//   },
-// }).then(
-//   async () => {
-//     await flush();
-//   },
-//   async (err) => {
-//     await handle(err as Error);
-//   }
-// );
