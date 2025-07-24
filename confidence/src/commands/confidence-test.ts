@@ -105,6 +105,7 @@ const filterFailingTests = (
     .filter((test) => test !== undefined);
 
 async function compareModelOutputs(
+  apiKey: string,
   utterances: string | string[],
   spec: Spec,
   tools: InvocableTool[]
@@ -114,7 +115,7 @@ async function compareModelOutputs(
 }> {
   const models = spec.models;
   const responses = await Promise.all(
-    models.map((model) => makeGatewayRequests(castToArray(utterances), model, tools, spec['initial-context']))
+    models.map((model) => makeGatewayRequests(apiKey, castToArray(utterances), model, tools, spec['initial-context']))
   );
 
   const invocations = responses.reduce<Record<string, Array<{ tool: string; parameters: Record<string, string> }>>>(
@@ -233,6 +234,11 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(ConfidenceTest);
+
+    const apiKey = process.env.SF_LLMG_API_KEY;
+    if (!apiKey) {
+      this.error('SF_LLMG_API_KEY environment variable is not set. Please set it to run this command.');
+    }
 
     const spec = Spec.safeParse(await readYamlFile<Spec>(flags.file));
     if (!spec.success) {
@@ -430,7 +436,7 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
           parameters: true,
         });
         return Array.from({ length: flags.runs }, (_, idx) =>
-          compareModelOutputs(test.utterances, spec.data, mcpTools).then(({ invocations, tableData }) => {
+          compareModelOutputs(apiKey, test.utterances, spec.data, mcpTools).then(({ invocations, tableData }) => {
             testResultsByTestCaseKey.set(testCaseKey, [
               ...(testResultsByTestCaseKey.get(testCaseKey) ?? []),
               {
