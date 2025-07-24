@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+import makeFetch from 'fetch-retry';
 import { Model } from './models.js';
 import { InvocableTool } from './tools.js';
+
+const fetchRetry = makeFetch(fetch);
 
 const API_KEY = process.env.SF_LLMG_API_KEY;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -75,12 +78,17 @@ const makeSingleGatewayRequest = async (
   tools: InvocableTool[],
   messages: Array<{ role: string; content: string }>
 ): Promise<GatewayResponse> => {
-  const response = await fetch(
+  const response = await fetchRetry(
     'https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations',
     {
       method: 'POST',
       headers: createRequestHeaders(),
       body: createRequestBody(model, tools, messages),
+      retryDelay(attempt) {
+        return Math.pow(2, attempt) * 1000; // 1000, 2000, 4000
+      },
+      retries: 5,
+      retryOn: [429],
     }
   );
 

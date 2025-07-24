@@ -51,6 +51,7 @@
     "@salesforce/source-tracking": "^7.4.8",
     "@salesforce/telemetry": "^6.0.39",
     "@salesforce/ts-types": "^2.0.11",
+    "fetch-retry": "^6.0.0",
     "open": "^10.1.2",
     "zod": "^3.25.67"
   },
