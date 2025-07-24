@@ -3,6 +3,7 @@
 import { dirname } from 'node:path';
 import { execute } from '@oclif/core';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Disable TLS verification for local testing
 await execute({
   development: true,
   dir: import.meta.url,

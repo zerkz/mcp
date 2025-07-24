@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-import makeFetch from 'fetch-retry';
 import { Model } from './models.js';
 import { InvocableTool } from './tools.js';
 import { RateLimiter } from './rate-limiter.js';
-
-const fetchRetry = makeFetch(fetch);
 
 type GatewayResponse = {
   generation_details?: {
@@ -78,15 +75,10 @@ const makeSingleGatewayRequest = async (
   messages: Array<{ role: string; content: string }>
 ): Promise<GatewayResponse> => {
   const response = await rateLimiter.enqueue(async () =>
-    fetchRetry('https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations', {
+    fetch('https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations', {
       method: 'POST',
       headers: createRequestHeaders(apiKey),
       body: createRequestBody(model, tools, messages),
-      retryDelay(attempt) {
-        return Math.pow(2, attempt) * 1000; // 1000, 2000, 4000
-      },
-      retries: 5,
-      retryOn: [429],
     })
   );
 
