@@ -17,6 +17,7 @@
 import makeFetch from 'fetch-retry';
 import { Model } from './models.js';
 import { InvocableTool } from './tools.js';
+import { RateLimiter } from './rate-limiter.js';
 
 const fetchRetry = makeFetch(fetch);
 
@@ -73,14 +74,17 @@ const createRequestBody = (
     },
   });
 
+// We're using a pre-production environment so we currently have the default 40 requests per minute per client-feature-id.
+// See: https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/rate-limits/#pre-production-environments
+const rateLimiter = new RateLimiter(40, 60_000);
+
 const makeSingleGatewayRequest = async (
   model: Model,
   tools: InvocableTool[],
   messages: Array<{ role: string; content: string }>
 ): Promise<GatewayResponse> => {
-  const response = await fetchRetry(
-    'https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations',
-    {
+  const response = await rateLimiter.enqueue(async () =>
+    fetchRetry('https://bot-svc-llm.sfproxy.einsteintest1.test1-uswest2.aws.sfdc.cl/v1.0/chat/generations', {
       method: 'POST',
       headers: createRequestHeaders(),
       body: createRequestBody(model, tools, messages),
@@ -89,7 +93,7 @@ const makeSingleGatewayRequest = async (
       },
       retries: 5,
       retryOn: [429],
-    }
+    })
   );
 
   if (!response.ok) {

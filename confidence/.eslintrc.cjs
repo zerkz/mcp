@@ -23,4 +23,7 @@ module.exports = {
       './confidence/tsconfig.json', // Add this line
     ],
   },
+  rules: {
+    'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+  },
 };

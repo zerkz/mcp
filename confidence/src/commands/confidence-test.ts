@@ -267,6 +267,15 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
       ? [spec.data.tests.find((test) => test.only)!]
       : spec.data.tests.filter((test) => !test.skip);
 
+    const logStatus = (message: string): void => {
+      if (flags.verbose) {
+        stdout(colorize('yellowBright', `Status: ${message}`));
+      }
+    };
+
+    let completedRuns = 0;
+    const totalTestCases = filteredTests.length * flags.runs;
+    logStatus(`Running ${totalTestCases} test cases...`);
     const runPromises = filteredTests.flatMap((test) => {
       const utteranceKey = Math.random().toString(36).substring(2, 15);
       testIndex.set(utteranceKey, {
@@ -279,12 +288,16 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
         allowedTools: [test['expected-tool'], ...(test['allowed-tools'] ?? [])],
       });
       return Array.from({ length: flags.runs }, (_, idx) =>
-        compareModelOutputs(test.utterances, spec.data, mcpTools).then(({ invocations, tableData }) => ({
-          idx,
-          utteranceKey,
-          invocations,
-          tableData,
-        }))
+        compareModelOutputs(test.utterances, spec.data, mcpTools).then(({ invocations, tableData }) => {
+          completedRuns++;
+          logStatus(`Completed run ${completedRuns} of ${totalTestCases}`);
+          return {
+            idx,
+            utteranceKey,
+            invocations,
+            tableData,
+          };
+        })
       );
     });
 
