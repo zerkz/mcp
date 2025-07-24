@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable no-await-in-loop */
+
 import makeDebug from 'debug';
 
 const debug = makeDebug('confidence:rate-limiter');
@@ -25,25 +27,35 @@ type QueuedRequest<T extends Response> = {
 };
 
 /**
- * A rate limiter that controls the frequency of requests using a sliding window approach.
+ * A rate limiter that controls the frequency of requests using a sliding window approach with adaptive burst control.
  *
  * This class implements a queue-based rate limiter that ensures no more than a specified
- * number of requests are executed within a given time window. Requests that exceed the
- * rate limit are queued and executed when the rate limit allows.
+ * number of requests are executed within a given time window. It features intelligent burst
+ * detection that allows rapid execution of small batches while maintaining rate limit compliance
+ * for larger workloads.
+ *
+ * Key Features:
+ * - Sliding window rate limiting
+ * - Adaptive burst control for small request batches
+ * - Gradual transition from burst to controlled spacing as utilization increases
+ * - Comprehensive monitoring and debugging information
  *
  * @example
  * ```typescript
  * // Create a rate limiter that allows 10 requests per minute
  * const rateLimiter = new RateLimiter(10, 60_000);
  *
- * // Enqueue API calls
- * const result1 = await rateLimiter.enqueue(() => fetch('/api/data1'));
- * const result2 = await rateLimiter.enqueue(() => fetch('/api/data2'));
+ * // Small batches execute immediately in burst mode
+ * const results = await Promise.all([
+ *   rateLimiter.enqueue(() => fetch('/api/data1')),
+ *   rateLimiter.enqueue(() => fetch('/api/data2')),
+ *   rateLimiter.enqueue(() => fetch('/api/data3'))
+ * ]);
  *
- * // Check current status
+ * // Check current status including burst mode information
  * const status = rateLimiter.getStatus();
- * console.log(`Queue length: ${status.queueLength}`);
- * console.log(`Requests in window: ${status.requestsInWindow}`);
+ * console.log(`Burst mode active: ${status.burstModeActive}`);
+ * console.log(`Utilization: ${(status.utilizationRatio * 100).toFixed(1)}%`);
  * ```
  */
 export class RateLimiter {
@@ -53,6 +65,24 @@ export class RateLimiter {
   private readonly requestTimestamps: number[] = [];
   private readonly queue: Array<QueuedRequest<Response>> = [];
   private isProcessing = false;
+
+  /**
+   * Utilization threshold below which burst mode is allowed.
+   * When current window utilization is below this ratio, requests can execute immediately.
+   */
+  private readonly burstUtilizationThreshold = 0.5;
+
+  /**
+   * Total work threshold (current + queued requests) for burst mode.
+   * Burst mode is only allowed when predicted total utilization is below this ratio.
+   */
+  private readonly burstQueueThreshold = 0.75;
+
+  /**
+   * Minimum delay between requests during controlled (non-burst) execution.
+   * Provides a baseline spacing to prevent overwhelming the target service.
+   */
+  private readonly minDelayMs = 50;
 
   public constructor(private readonly maxRequests = 40, private readonly windowMs = 60_000) {}
 
@@ -111,6 +141,10 @@ export class RateLimiter {
     isProcessing: boolean;
     completed: number;
     failed: number;
+    burstModeActive: boolean;
+    utilizationRatio: number;
+    predictedUtilization: number;
+    timeUntilWindowReset: number;
   } {
     const now = Date.now();
     this.cleanupOldTimestamps(now);
@@ -124,6 +158,10 @@ export class RateLimiter {
       isProcessing: this.isProcessing,
       completed: RateLimiter.completed,
       failed: RateLimiter.failed,
+      burstModeActive: this.shouldAllowBurst(),
+      utilizationRatio: this.requestTimestamps.length / this.maxRequests,
+      predictedUtilization: this.getPredictedWindowUtilization(),
+      timeUntilWindowReset: this.getTimeUntilWindowReset(),
     };
   }
 
@@ -148,19 +186,77 @@ export class RateLimiter {
         // Execute the request asynchronously - don't await
         void RateLimiter.executeRequest(request);
 
-        // Add a small delay to prevent burst requests from overwhelming the rate limit
-        // This spreads out request initiation while still allowing parallelization
-        // eslint-disable-next-line no-await-in-loop
-        await RateLimiter.sleep(Math.ceil(this.windowMs / this.maxRequests));
+        // Use adaptive delay instead of fixed delay
+        const delay = this.calculateAdaptiveDelay();
+        if (delay > 0) {
+          await RateLimiter.sleep(delay);
+        }
       } else {
         // Wait until we can make the next request
-        const delay = this.calculateDelay(now);
-        // eslint-disable-next-line no-await-in-loop
-        await RateLimiter.sleep(delay);
+        await RateLimiter.sleep(this.calculateDelay(now));
       }
     }
 
     this.isProcessing = false;
+  }
+
+  /**
+   * Determines if burst mode should be allowed based on current utilization
+   */
+  private shouldAllowBurst(): boolean {
+    const utilizationRatio = this.requestTimestamps.length / this.maxRequests;
+    const queueRatio = this.queue.length / this.maxRequests;
+    const totalWorkRatio = utilizationRatio + queueRatio;
+
+    // Allow bursts when:
+    // 1. Current utilization is below the burst threshold
+    // 2. Total work (current + queued) is below the queue threshold
+    return utilizationRatio < this.burstUtilizationThreshold && totalWorkRatio < this.burstQueueThreshold;
+  }
+
+  /**
+   * Calculates adaptive delay based on current utilization and queue state
+   */
+  private calculateAdaptiveDelay(): number {
+    // Allow immediate execution during burst conditions
+    if (this.shouldAllowBurst()) {
+      return 0;
+    }
+
+    const utilizationRatio = this.requestTimestamps.length / this.maxRequests;
+    const remainingCapacity = this.maxRequests - this.requestTimestamps.length;
+    const queueLength = this.queue.length;
+
+    // If we have enough capacity for all queued requests, use minimal spacing
+    if (remainingCapacity >= queueLength) {
+      return this.minDelayMs;
+    }
+
+    // Calculate base delay and scale it based on utilization
+    const baseDelay = Math.ceil(this.windowMs / this.maxRequests);
+    const scalingFactor = Math.min(utilizationRatio * 2, 1);
+
+    return Math.max(this.minDelayMs, baseDelay * scalingFactor);
+  }
+
+  /**
+   * Gets the time until the current rate limit window resets
+   */
+  private getTimeUntilWindowReset(): number {
+    if (this.requestTimestamps.length === 0) {
+      return 0;
+    }
+    const oldestRequest = this.requestTimestamps[0];
+    return Math.max(0, oldestRequest + this.windowMs - Date.now());
+  }
+
+  /**
+   * Calculates predicted window utilization including queued requests
+   */
+  private getPredictedWindowUtilization(): number {
+    const currentUtilization = this.requestTimestamps.length;
+    const queuedRequests = this.queue.length;
+    return (currentUtilization + queuedRequests) / this.maxRequests;
   }
 
   /**
