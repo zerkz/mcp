@@ -52,7 +52,7 @@ jobs:
         run: |
           for file in test/confidence/*.yml; do
             echo "Running confidence test for $file"
-            yarn test:confidence "$file"
+            yarn test:confidence --file "$file"
           done
 
   # Uncomment to enable NUT testing in Github Actions
