@@ -30,7 +30,7 @@ ONLY use this tool if:
 2. You genuinely don't know what tools are available for a specific task
 3. You need to discover new tools for an unfamiliar use case
 
-If you find a tool you want to enable, call sf-enable-tool with the tool name.
+If you find a tool you want to enable, call sf-enable-tools with the tool name.
 Once you have enabled the tool, you MUST invoke that tool to accomplish the user's original request - DO NOT USE A DIFFERENT TOOL OR THE COMMAND LINE.
 Once a tool has been enabled, you do not need to call sf-list-tools again - instead, invoke the desired tool directly.`,
     {
