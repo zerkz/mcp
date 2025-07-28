@@ -19,6 +19,7 @@ import { spawn } from 'node:child_process';
 import faiss from 'faiss-node';
 import { pipeline, FeatureExtractionPipeline } from '@huggingface/transformers';
 import { ux } from '@oclif/core';
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 type CommandData = {
   id: number;
@@ -158,4 +159,48 @@ export async function getAssets(): Promise<Assets> {
   } catch (error) {
     throw new Error(`Failed to load assets: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+
+export async function getAssetsForToolSearch(): Promise<{
+  tools: Array<{
+    id: number;
+    name: string;
+    description: string | undefined;
+    parameters: Tool['inputSchema'];
+    annotations: Tool['annotations'];
+    embeddingText: string;
+  }>;
+  toolNames: string[];
+  faissIndex: faiss.IndexFlatL2;
+  embedder: FeatureExtractionPipeline;
+}> {
+  const mcpToolsPath = resolve(import.meta.dirname, '..', 'assets', 'sf-mcp-tools.json');
+  const faissIndexPath = resolve(import.meta.dirname, '..', 'assets', 'faiss-tools-index.bin');
+
+  try {
+    await fs.promises.access(mcpToolsPath);
+    await fs.promises.access(faissIndexPath);
+  } catch (error) {
+    throw new Error(`Assets not found: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+
+  const toolsData = JSON.parse(await fs.promises.readFile(mcpToolsPath, 'utf-8')) as Array<{
+    id: number;
+    name: string;
+    description: string | undefined;
+    parameters: Tool['inputSchema'];
+    annotations: Tool['annotations'];
+    embeddingText: string;
+  }>;
+  const faissIndex = faiss.IndexFlatL2.read(faissIndexPath);
+  const embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
+    dtype: 'fp32',
+  });
+
+  return {
+    tools: toolsData,
+    toolNames: toolsData.map((tool) => tool.name),
+    faissIndex,
+    embedder,
+  };
 }
