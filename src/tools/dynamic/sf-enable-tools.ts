@@ -26,7 +26,7 @@ const enableToolsParamsSchema = z.object({
 export function registerToolEnableTools(server: SfMcpServer): void {
   server.tool(
     'sf-enable-tools',
-    `Enable one of the tools the Salesforce MCP server provides.
+    `Enable one or more of the tools the Salesforce MCP server provides.
 
 AGENT INSTRUCTIONS:
 Use sf-list-all-tools first to learn what tools are available for enabling.
