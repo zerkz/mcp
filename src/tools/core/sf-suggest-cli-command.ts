@@ -16,7 +16,7 @@
 
 import { z } from 'zod';
 import { SfMcpServer } from '../../sf-mcp-server.js';
-import { getAssets } from '../../assets.js';
+import { getCommandSearchAssets } from '../../assets.js';
 import { textResponse } from '../../shared/utils.js';
 
 const suggestCliCommandParamsSchema = z.object({
@@ -35,7 +35,7 @@ export const registerToolSuggestCliCommand = (server: SfMcpServer): void => {
       readOnlyHint: true,
     },
     async ({ query }) => {
-      const assets = await getAssets();
+      const assets = await getCommandSearchAssets();
 
       // Embed the user query
       const queryEmbedding = await assets.embedder(query, {

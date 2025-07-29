@@ -41,9 +41,23 @@ type CommandData = {
   embeddingText: string;
 };
 
-type Assets = {
+type CommandSearchAssets = {
   commands: CommandData[];
   commandNames: string[];
+  faissIndex: faiss.IndexFlatL2;
+  embedder: FeatureExtractionPipeline;
+};
+
+type ToolSearchAssets = {
+  tools: Array<{
+    id: number;
+    name: string;
+    description: string | undefined;
+    parameters: Tool['inputSchema'];
+    annotations: Tool['annotations'];
+    embeddingText: string;
+  }>;
+  toolNames: string[];
   faissIndex: faiss.IndexFlatL2;
   embedder: FeatureExtractionPipeline;
 };
@@ -119,7 +133,7 @@ function spawnBuildScript(outputDir: string, detached: boolean): Promise<void> {
   }
 }
 
-export async function getAssets(): Promise<Assets> {
+export async function getCommandSearchAssets(): Promise<CommandSearchAssets> {
   if (!CACHED_DATA_DIR) {
     throw new Error('Data directory not set. Please call maybeBuildIndex first.');
   }
@@ -161,19 +175,7 @@ export async function getAssets(): Promise<Assets> {
   }
 }
 
-export async function getAssetsForToolSearch(): Promise<{
-  tools: Array<{
-    id: number;
-    name: string;
-    description: string | undefined;
-    parameters: Tool['inputSchema'];
-    annotations: Tool['annotations'];
-    embeddingText: string;
-  }>;
-  toolNames: string[];
-  faissIndex: faiss.IndexFlatL2;
-  embedder: FeatureExtractionPipeline;
-}> {
+export async function getToolSearchAssets(): Promise<ToolSearchAssets> {
   const mcpToolsPath = resolve(import.meta.dirname, '..', 'assets', 'sf-mcp-tools.json');
   const faissIndexPath = resolve(import.meta.dirname, '..', 'assets', 'faiss-tools-index.bin');
 

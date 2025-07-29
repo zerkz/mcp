@@ -18,7 +18,7 @@ import { z } from 'zod';
 import { SfMcpServer } from '../../sf-mcp-server.js';
 import { textResponse } from '../../shared/utils.js';
 import { listAllTools } from '../../shared/tools.js';
-import { getAssetsForToolSearch } from '../../assets.js';
+import { getToolSearchAssets } from '../../assets.js';
 
 const listToolsParamsSchema = z.object({
   query: z
@@ -53,7 +53,7 @@ Once a tool has been enabled, you do not need to call sf-list-tools again - inst
       openWorldHint: false,
     },
     async ({ query }) => {
-      const assets = await getAssetsForToolSearch();
+      const assets = await getToolSearchAssets();
 
       // Embed the user query
       const queryEmbedding = await assets.embedder(query, {
@@ -68,10 +68,16 @@ Once a tool has been enabled, you do not need to call sf-list-tools again - inst
         5
       );
 
-      const topCandidateIds = searchResults.labels.slice(0, 5);
-      const topTools = topCandidateIds.map((id) => assets.tools.find((c) => c.id === id)!);
+      const allTools = await listAllTools();
+      const enabledToolNames = new Set(allTools.filter((tool) => tool.enabled).map((tool) => tool.name));
 
-      const tools = (await listAllTools()).filter((tool) => topTools.some((t) => t.name === tool.name));
+      // Filter search results to exclude enabled tools and get top 5
+      const filteredResults = searchResults.labels
+        .map((id) => assets.tools.find((c) => c.id === id)!)
+        .filter((tool) => !enabledToolNames.has(tool.name))
+        .slice(0, 5);
+
+      const tools = allTools.filter((tool) => filteredResults.some((t) => t.name === tool.name));
 
       return textResponse(JSON.stringify(tools, null, 2));
     }
