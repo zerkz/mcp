@@ -35,33 +35,53 @@ export type InvocableTool = {
 
 export const getToolsList = async (): Promise<InvocableTool[]> => {
   const toolsList: string = await new Promise<string>((resolve, reject) => {
-    const child = spawn('npx', [
-      '@modelcontextprotocol/inspector',
-      '--cli',
-      'node',
-      'bin/run.js',
-      '--orgs',
-      'DEFAULT_TARGET_ORG',
-      '--method',
-      'tools/list',
-    ]);
+    const isWindows = process.platform === 'win32';
+    const command = isWindows ? 'npx.cmd' : 'npx';
+    const binPath = path.join('bin', 'run.js');
 
-    let output = '';
-
-    child.stdout.on('data', (data: Buffer) => {
-      output += data.toString();
-    });
-
-    child.stderr.on('data', (data: Buffer) => {
-      reject(new Error(data.toString()));
-    });
-
-    child.on('close', (code: number | null) => {
-      if (code === 0) {
-        resolve(output);
-      } else {
-        reject(new Error(`Process exited with code ${code ?? 'unknown'}`));
+    const child = spawn(
+      command,
+      [
+        '@modelcontextprotocol/inspector',
+        '--cli',
+        'node',
+        binPath,
+        '--orgs',
+        'DEFAULT_TARGET_ORG',
+        '--method',
+        'tools/list',
+      ],
+      {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        shell: isWindows,
       }
+    );
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data: Buffer) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data: Buffer) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command failed with code ${code}: ${stderr}`));
+        return;
+      }
+      if (stderr) {
+        reject(new Error(stderr));
+        return;
+      }
+      resolve(stdout);
+    });
+
+    child.on('error', (error) => {
+      reject(error);
     });
   });
 
