@@ -28,6 +28,7 @@ import * as dynamic from './tools/dynamic/index.js';
 import Cache from './shared/cache.js';
 import { Telemetry } from './telemetry.js';
 import { SfMcpServer } from './sf-mcp-server.js';
+import { maybeBuildIndex } from './assets.js';
 import { determineToolsetsToEnable, TOOLSETS } from './shared/tools.js';
 
 /**
@@ -161,6 +162,7 @@ You can also use special values to control access to orgs:
       }
     );
 
+    await maybeBuildIndex(this.config.dataDir);
     const toolsetsToEnable = determineToolsetsToEnable(flags.toolsets ?? ['all'], flags['dynamic-tools'] ?? false);
 
     // ************************
@@ -174,13 +176,14 @@ You can also use special values to control access to orgs:
     // get username
     core.registerToolGetUsername(server);
     core.registerToolResume(server);
+    core.registerToolSuggestCliCommand(server);
 
     // DYNAMIC TOOLSETS
     // ************************
     if (toolsetsToEnable.dynamic) {
       this.logToStderr('Registering dynamic tools');
       // Individual tool management
-      dynamic.registerToolEnableTool(server);
+      dynamic.registerToolEnableTools(server);
       dynamic.registerToolListTools(server);
     }
 
@@ -241,6 +244,9 @@ You can also use special values to control access to orgs:
       this.logToStderr('Registering experimental tools');
       orgs.registerToolOrgOpen(server);
       // Add any experimental tools here
+      orgs.registerToolCreateScratchOrg(server);
+      orgs.registerToolDeleteOrg(server);
+      orgs.registerToolCreateOrgSnapshot(server);
     }
 
     const transport = new StdioServerTransport();

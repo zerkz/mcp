@@ -1,3 +1,59 @@
+# [0.17.0](https://github.com/salesforcecli/mcp/compare/0.16.1...0.17.0) (2025-07-29)
+
+### Features
+
+- **W-19147516:** replace sf-enable-tool with sf-enable-tools ([#128](https://github.com/salesforcecli/mcp/issues/128)) ([5f66de9](https://github.com/salesforcecli/mcp/commit/5f66de944fdb202e34999b81ccc169393e1d1bbf))
+
+## [0.16.1](https://github.com/salesforcecli/mcp/compare/0.16.0...0.16.1) (2025-07-28)
+
+### Bug Fixes
+
+- **W-19105967:** better descriptions to prevent unneeded sf-list-tool calls ([#121](https://github.com/salesforcecli/mcp/issues/121)) ([863fec9](https://github.com/salesforcecli/mcp/commit/863fec9c667647492a9494ed0a60a8deb338d448))
+
+# [0.16.0](https://github.com/salesforcecli/mcp/compare/0.15.4...0.16.0) (2025-07-28)
+
+### Bug Fixes
+
+- add sf-suggest-cli-command to core tools ([4657d72](https://github.com/salesforcecli/mcp/commit/4657d720588be0aee68fee84d1dbbe202ed314c6))
+- check if index needs to be built when calling getAssets ([efb5c21](https://github.com/salesforcecli/mcp/commit/efb5c21d10a41f95b8775ba45c3f61f352acecd8))
+- improve embedding and agent instructions ([f363772](https://github.com/salesforcecli/mcp/commit/f363772548805ccc83259583a4c00d0c3b5ce0b1))
+
+### Features
+
+- create weighted embedding text ([30b5ccf](https://github.com/salesforcecli/mcp/commit/30b5ccfa82176f11bccc9efe8a34bba09ccc7fd5))
+- **W-18909741:** suggest sf command ([5ca1455](https://github.com/salesforcecli/mcp/commit/5ca1455d394a506017b5b341c64f41ef2f7706b7))
+
+## [0.15.4](https://github.com/salesforcecli/mcp/compare/0.15.3...0.15.4) (2025-07-27)
+
+### Bug Fixes
+
+- **deps:** bump @jsforce/jsforce-node from 3.9.1 to 3.9.4 ([08b58a6](https://github.com/salesforcecli/mcp/commit/08b58a66f64e1eab737ce8eb7b5c1616ed124d71))
+
+## [0.15.3](https://github.com/salesforcecli/mcp/compare/0.15.2...0.15.3) (2025-07-26)
+
+### Bug Fixes
+
+- **deps:** bump @salesforce/source-deploy-retrieve ([d85e3c0](https://github.com/salesforcecli/mcp/commit/d85e3c0499db0c14c26a5944b1d6066faaf9ffc3))
+
+## [0.15.2](https://github.com/salesforcecli/mcp/compare/0.15.1...0.15.2) (2025-07-26)
+
+### Bug Fixes
+
+- **deps:** bump zod from 3.25.67 to 3.25.76 ([221c271](https://github.com/salesforcecli/mcp/commit/221c271d3c614992d768475110663d7bd163c867))
+
+## [0.15.1](https://github.com/salesforcecli/mcp/compare/0.15.0...0.15.1) (2025-07-26)
+
+### Bug Fixes
+
+- **deps:** bump @salesforce/telemetry from 6.0.39 to 6.1.0 ([0244c4a](https://github.com/salesforcecli/mcp/commit/0244c4a09942739bcbc4ba561616894bf5a3f824))
+
+# [0.15.0](https://github.com/salesforcecli/mcp/compare/0.14.3...0.15.0) (2025-07-24)
+
+### Features
+
+- add snapshot tool, add ability to monitor snapshot from resume tools ([50d54f4](https://github.com/salesforcecli/mcp/commit/50d54f4c03cbd6c05100a8352fedf7aec0fff075))
+- delete scratch/sandbox ([61fb363](https://github.com/salesforcecli/mcp/commit/61fb363c05836fceb491a9462fc63f37ed3136f3))
+
 ## [0.14.3](https://github.com/salesforcecli/mcp/compare/0.14.2...0.14.3) (2025-07-22)
 
 ### Bug Fixes
