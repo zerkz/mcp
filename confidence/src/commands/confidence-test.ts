@@ -23,6 +23,7 @@ import { getToolsList, InvocableTool } from '../utils/tools.js';
 import { TABLE_STYLE } from '../utils/table.js';
 import { readYamlFile } from '../utils/yaml.js';
 import { Model } from '../utils/models.js';
+import { mintJWT } from '../utils/jwt.js';
 
 const Spec = z.object({
   models: z.array(z.custom<Model>()),
@@ -105,7 +106,7 @@ const filterFailingTests = (
     .filter((test) => test !== undefined);
 
 async function compareModelOutputs(
-  apiKey: string,
+  jwtToken: string,
   utterances: string | string[],
   spec: Spec,
   tools: InvocableTool[]
@@ -115,7 +116,7 @@ async function compareModelOutputs(
 }> {
   const models = spec.models;
   const responses = await Promise.all(
-    models.map((model) => makeGatewayRequests(apiKey, castToArray(utterances), model, tools, spec['initial-context']))
+    models.map((model) => makeGatewayRequests(jwtToken, castToArray(utterances), model, tools, spec['initial-context']))
   );
 
   const invocations = responses.reduce<Record<string, Array<{ tool: string; parameters: Record<string, string> }>>>(
@@ -168,7 +169,12 @@ export default class ConfidenceTest extends Command {
 
 Configuration:
 - Uses a YAML file to specify models and test cases
-- Requires SF_LLMG_API_KEY environment variable
+- Requires SF_MCP_CONFIDENCE_CONSUMER_KEY environment variable
+- Requires SF_MCP_CONFIDENCE_CONSUMER_SECRET environment variable
+- Requires SF_MCP_CONFIDENCE_INSTANCE_URL environment variable
+
+At runtime, the SF_MCP_CONFIDENCE_CONSUMER_KEY and SF_MCP_CONFIDENCE_CONSUMER_SECRET are used to generate a JWT token from a External Client App in the production org (SF_MCP_CONFIDENCE_INSTANCE_URL).
+This token is then used to authenticate requests to the LLM Gateway API.
 
 YAML File Format:
 The YAML file should contain:
@@ -204,7 +210,7 @@ tests:
     expected-tool-confidence: 85
 
 For available models, see:
-https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/`;
+https://developer.salesforce.com/docs/einstein/genai/guide/supported-models.html`;
 
   public static flags = {
     file: Flags.file({
@@ -235,10 +241,7 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
   public async run(): Promise<void> {
     const { flags } = await this.parse(ConfidenceTest);
 
-    const apiKey = process.env.SF_LLMG_API_KEY;
-    if (!apiKey) {
-      this.error('SF_LLMG_API_KEY environment variable is not set. Please set it to run this command.');
-    }
+    const jwtToken = await mintJWT();
 
     const spec = Spec.safeParse(await readYamlFile<Spec>(flags.file));
     if (!spec.success) {
@@ -436,7 +439,7 @@ https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/mode
           parameters: true,
         });
         return Array.from({ length: flags.runs }, (_, idx) =>
-          compareModelOutputs(apiKey, test.utterances, spec.data, mcpTools).then(({ invocations, tableData }) => {
+          compareModelOutputs(jwtToken, test.utterances, spec.data, mcpTools).then(({ invocations, tableData }) => {
             testResultsByTestCaseKey.set(testCaseKey, [
               ...(testResultsByTestCaseKey.get(testCaseKey) ?? []),
               {

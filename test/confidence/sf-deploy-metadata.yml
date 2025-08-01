@@ -1,8 +1,5 @@
 models:
-  # - llmgateway__OpenAIGPT35Turbo_01_25
-  # - llmgateway__OpenAIGPT4OmniMini
-  # - llmgateway__OpenAIGPT41Nano
-  - llmgateway__BedrockAnthropicClaude4Sonnet
+  - sfdc_ai__DefaultBedrockAnthropicClaude4Sonnet
 
 initial-context:
   - 'My current OS is macos. I am working in a workspace with the following folders: /Users/sf-dev/dreamhouse-lwc

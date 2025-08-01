@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-// See https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/
+// https://developer.salesforce.com/docs/einstein/genai/guide/supported-models.html
 export const MODELS = [
-  'llmgateway__OpenAIGPT35Turbo_01_25',
-  'llmgateway__OpenAIGPT4OmniMini',
-  'llmgateway__BedrockAnthropicClaude4Sonnet',
-  'llmgateway__OpenAIGPT41Nano',
-  'llmgateway__OpenAIGPT41Mini',
-  'llmgateway__BedrockAnthropicClaude37Sonnet',
-  'llmgateway__BedrockAnthropicClaude3Opus',
-  'llmgateway__VertexAIGemini25Flash001',
+  'sfdc_ai__DefaultBedrockAnthropicClaude37Sonnet',
+  'sfdc_ai__DefaultOpenAIGPT35Turbo',
+  'sfdc_ai__DefaultGPT41Mini',
+  'sfdc_ai__DefaultBedrockAnthropicClaude4Sonnet',
+  'sfdc_ai__DefaultOpenAIGPT4OmniMini',
+  'sfdc_ai__DefaultVertexAIGeminiPro25',
 ] as const;
 
 export type Model = (typeof MODELS)[number];
-export const DEFAULT_MODEL: Model = 'llmgateway__BedrockAnthropicClaude4Sonnet';

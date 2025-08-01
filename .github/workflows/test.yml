@@ -38,7 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.confidence-changed == 'true'}}
     env:
-      SF_LLMG_API_KEY: ${{ secrets.SF_LLMG_API_KEY }}
+      SF_MCP_CONFIDENCE_CONSUMER_KEY: ${{ secrets.SF_MCP_CONFIDENCE_CONSUMER_KEY }}
+      SF_MCP_CONFIDENCE_CONSUMER_SECRET: ${{ secrets.SF_MCP_CONFIDENCE_CONSUMER_SECRET }}
+      SF_MCP_CONFIDENCE_INSTANCE_URL: ${{ secrets.SF_MCP_CONFIDENCE_INSTANCE_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

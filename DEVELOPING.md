@@ -130,15 +130,17 @@ Confidence tests validate that the MCP server tools are accurately invoked by va
 
 #### Running Confidence Tests Locally
 
-1. **Set up API access**: You'll need the `SF_LLMG_API_KEY` environment variable to access the LLM Gateway API. Follow the setup instructions [here](https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/get-started/quickstart/).
-
-2. **Export the API key**:
+1. **Set up API access**: Follow this [documentation](https://developer.salesforce.com/docs/einstein/genai/guide/access-models-api-with-rest.html) to setup an External Client App that will give you access to the Models API. Once you have the consumer key and secret from the External Client App, you'll need to add these to environment variables:
 
    ```shell
-   export SF_LLMG_API_KEY=your_api_key_here
+   export SF_MCP_CONFIDENCE_CONSUMER_KEY=your_client_id_here
+   export SF_MCP_CONFIDENCE_CONSUMER_SECRET=your_client_secret_here
+   export SF_MCP_CONFIDENCE_INSTANCE_URL=https://your_instance.salesforce.com
    ```
 
-3. **Run a specific confidence test**:
+   These environment variables are used to generate a JWT token that will be used to authenticate with the Models API.
+
+2. **Run a confidence test**:
    ```shell
    yarn test:confidence --file test/confidence/sf-deploy-metadata.yml
    ```
@@ -147,7 +149,7 @@ Confidence tests validate that the MCP server tools are accurately invoked by va
 
 Confidence tests are defined in YAML files located in `test/confidence/`. Each test file specifies:
 
-- **Models**: Which LLM models to test against. See LLMGateway documentation for [available models](https://git.soma.salesforce.com/pages/tech-enablement/einstein/docs/gateway/models-and-providers/).
+- **Models**: Which LLM models to test against. See the Agentforce Developer Guide for [available models](https://developer.salesforce.com/docs/einstein/genai/guide/supported-models.html).
 - **Initial Context**: Background information provided to the model
 - **Test Cases**: Natural language utterances with expected tool invocations and confidence thresholds
 
