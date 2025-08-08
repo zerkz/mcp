@@ -23,6 +23,7 @@
     "postpack": "sf-clean --ignore-signing-artifacts",
     "prepack": "sf-prepack",
     "prepare": "sf-install",
+    "prepublishOnly": "npm shrinkwrap",
     "start": "yarn build && npm link && mcp-inspector sf-mcp-server",
     "test": "wireit",
     "test:only": "wireit"
@@ -36,6 +37,7 @@
     "bin",
     "lib",
     "!lib/**/*.map",
+    "npm-shrinkwrap.json",
     "messages"
   ],
   "dependencies": {
