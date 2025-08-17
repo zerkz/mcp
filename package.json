@@ -29,7 +29,7 @@
   },
   "repository": "salesforcecli/mcp",
   "bugs": {
-    "url": "https://github.com/salesforcecli/mcp/issues"
+    "url": "https://github.com/forcedotcom/mcp/issues"
   },
   "homepage": "https://github.com/salesforcecli/mcp",
   "files": [
