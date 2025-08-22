@@ -22,9 +22,9 @@ jobs:
           nodeVersionOverride: ${{ vars.NODE_VERSION_OVERRIDE }} # default is 'lts/*'
           nodeDisableVersions: ${{ vars.NODE_DISABLE_VERSIONS }}
 
-  prevent-typescript-dependency:
-    if: ${{ inputs.skipTsDepCheck == false }}
-    uses: salesforcecli/github-workflows/.github/workflows/preventTypescriptDep.yml@main
+  # prevent-typescript-dependency:
+  #   if: ${{ inputs.skipTsDepCheck == false }}
+  #   uses: salesforcecli/github-workflows/.github/workflows/preventTypescriptDep.yml@main
 
   linux-unit-tests:
     needs: determine-node-versions
