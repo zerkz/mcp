@@ -1,10 +1,21 @@
 {
-  "extends": "@salesforce/dev-config/tsconfig-strict",
   "compilerOptions": {
     "composite": true,
-    "outDir": "./lib",
-    "strictNullChecks": true,
-    "isolatedModules": true
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "isolatedModules": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "lib": [
+      "ES2022"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "sourceMap": true,
+    "strict": true,
+    "target": "ESNEXT"
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "./src",
+  ]
 }
