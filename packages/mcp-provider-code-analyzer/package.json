@@ -1,5 +1,5 @@
 {
-    "name": "@salesforce/code-analyzer-mcp-provider",
+    "name": "@salesforce/mcp-provider-code-analyzer",
     "description": "(For Interal Use Only) Provides MCP Tools for Salesforce Code Analyzer to a MCP Server",
     "version": "0.0.1-alpha.1",
     "author": "Salesforce",
@@ -8,7 +8,7 @@
     "repository": {
         "type": "git",
         "url": "git+https://github.com/salesforcecli/mcp.git",
-        "directory": "packages/code-analyzer-mcp-provider"
+        "directory": "packages/mcp-provider-code-analyzer"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

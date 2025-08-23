@@ -15,7 +15,7 @@
  */
 
 import { McpProvider } from '@salesforce/mcp-provider-api';
-import { CodeAnalyzerMcpProvider } from '@salesforce/code-analyzer-mcp-provider';
+import { CodeAnalyzerMcpProvider } from '@salesforce/mcp-provider-code-analyzer';
 import { PlatformCliMcpProvider } from './modules/platform-cli/index.js';
 
 /** -------- ADD McpProvider INSTANCES HERE ------------------------------------------------------------------------- */

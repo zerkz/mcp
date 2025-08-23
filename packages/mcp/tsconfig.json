@@ -14,7 +14,7 @@
       "path": "../mcp-provider-api/tsconfig.json"
     },
     {
-      "path": "../code-analyzer-mcp-provider/tsconfig.build.json"
+      "path": "../mcp-provider-code-analyzer/tsconfig.build.json"
     }
   ]
 }
