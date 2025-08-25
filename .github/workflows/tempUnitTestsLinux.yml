@@ -41,6 +41,11 @@ jobs:
           node-version: ${{ matrix.node_version }}
           cache: yarn
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
 #      - uses: google/wireit@setup-github-actions-caching/v2
 #        continue-on-error: true
 
