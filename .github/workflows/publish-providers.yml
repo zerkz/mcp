@@ -7,7 +7,7 @@ on:
     paths:
       - 'packages/mcp-provider-api/**'
       - 'packages/mcp-provider-dx-core/**'  
-      - 'packages/mcp-provider-code-analyzer/**'
+      # - 'packages/mcp-provider-code-analyzer/**'
 
 jobs:
   detect-changes:
@@ -31,7 +31,8 @@ jobs:
           HAS_CHANGES=false
           
           # Check each provider package for changes
-          for pkg in mcp-provider-api mcp-provider-dx-core mcp-provider-code-analyzer; do
+          # for pkg in mcp-provider-api mcp-provider-dx-core mcp-provider-code-analyzer; do
+          for pkg in mcp-provider-api mcp-provider-dx-core; do
             if echo "$CHANGED_FILES" | grep -q "^packages/$pkg/"; then
               PACKAGES=$(echo "$PACKAGES" | jq --arg pkg "$pkg" '. += [$pkg]')
               HAS_CHANGES=true
