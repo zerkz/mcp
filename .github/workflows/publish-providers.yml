@@ -174,7 +174,7 @@ jobs:
           
           # Go back to root and update yarn.lock
           cd ../../
-          yarn install --frozen-lockfile=false
+          yarn install
           
           # Commit the changes
           git add packages/mcp/package.json yarn.lock
