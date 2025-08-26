@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - cd/fix-publish-workflows
     paths:
       - 'packages/mcp-provider-api/**'
       - 'packages/mcp-provider-dx-core/**'  
@@ -155,3 +156,33 @@ jobs:
           npm publish --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Update main server dependency
+        if: ${{ steps.changelog.outputs.skipped == 'false' && steps.release.outputs.id != '' }}
+        run: |
+          # Get the published version
+          PUBLISHED_VERSION="${{ steps.changelog.outputs.version }}"
+          PACKAGE_NAME="@salesforce/${{ matrix.package }}"
+          
+          echo "Updating $PACKAGE_NAME to version $PUBLISHED_VERSION in main MCP server"
+          
+          # Update the dependency in main server's package.json using jq
+          cd packages/mcp
+          jq --arg pkg "$PACKAGE_NAME" --arg ver "^$PUBLISHED_VERSION" \
+            '.dependencies[$pkg] = $ver' package.json > package.json.tmp
+          mv package.json.tmp package.json
+          
+          # Go back to root and update yarn.lock
+          cd ../../
+          yarn install --frozen-lockfile=false
+          
+          # Commit the changes
+          git add packages/mcp/package.json yarn.lock
+          git config user.name "${{ steps.github-user-info.outputs.username }}"
+          git config user.email "${{ steps.github-user-info.outputs.email }}"
+          git commit -m "chore: bump $PACKAGE_NAME to ^$PUBLISHED_VERSION
+
+          Auto-update dependency after provider package publish.
+          
+          Related release: ${{ matrix.package }}@${{ steps.changelog.outputs.version }}"
+          git push
