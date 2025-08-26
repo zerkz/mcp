@@ -1,0 +1,114 @@
+name: publish-providers
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/mcp-provider-api/**'
+      - 'packages/mcp-provider-dx-core/**'  
+      - 'packages/mcp-provider-code-analyzer/**'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed-packages: ${{ steps.detect.outputs.packages }}
+      has-changes: ${{ steps.detect.outputs.has-changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Detect changed packages
+        id: detect
+        run: |
+          # Get changed files in the last commit
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          
+          # Initialize packages array
+          PACKAGES='[]'
+          HAS_CHANGES=false
+          
+          # Check each provider package for changes
+          for pkg in mcp-provider-api mcp-provider-dx-core mcp-provider-code-analyzer; do
+            if echo "$CHANGED_FILES" | grep -q "^packages/$pkg/"; then
+              PACKAGES=$(echo "$PACKAGES" | jq --arg pkg "$pkg" '. += [$pkg]')
+              HAS_CHANGES=true
+              echo "Detected changes in: $pkg"
+            fi
+          done
+          
+          echo "packages=$PACKAGES" >> "$GITHUB_OUTPUT"
+          echo "has-changes=$HAS_CHANGES" >> "$GITHUB_OUTPUT"
+          echo "Changed packages: $PACKAGES"
+
+  publish-package:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.detect-changes.outputs.changed-packages) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Get Github user info
+        id: github-user-info
+        uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
+        with:
+          SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build package
+        run: |
+          cd packages/${{ matrix.package }}
+          yarn build
+
+      - name: Conventional Changelog Action
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@3a392e9aa44a72686b0fc13259a90d287dd0877c
+        with:
+          git-user-name: ${{ steps.github-user-info.outputs.username }}
+          git-user-email: ${{ steps.github-user-info.outputs.email }}
+          github-token: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
+          tag-prefix: "${{ matrix.package }}@"
+          release-count: "0"
+          skip-on-empty: true
+          git-path: "packages/${{ matrix.package }}"
+          version-file: "packages/${{ matrix.package }}/package.json"
+          output-file: "packages/${{ matrix.package }}/CHANGELOG.md"
+
+      - name: Create Github Release
+        id: release
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        with:
+          name: "${{ matrix.package }}@${{ steps.changelog.outputs.version }}"
+          tag: "${{ matrix.package }}@${{ steps.changelog.outputs.version }}"
+          commit: ${{ github.sha }}
+          body: |
+            ## Changes in ${{ matrix.package }}
+            
+            ${{ steps.changelog.outputs.clean_changelog }}
+          token: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
+          skipIfReleaseExists: true
+
+      - name: Publish to npm
+        if: ${{ steps.changelog.outputs.skipped == 'false' && steps.release.outputs.id != '' }}
+        run: |
+          cd packages/${{ matrix.package }}
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          npm publish --access public
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
