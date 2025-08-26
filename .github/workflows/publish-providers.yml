@@ -8,6 +8,16 @@ on:
       - 'packages/mcp-provider-api/**'
       - 'packages/mcp-provider-dx-core/**'  
       # - 'packages/mcp-provider-code-analyzer/**'
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: 'Comma-separated list of packages to publish (e.g., mcp-provider-api,mcp-provider-dx-core). Leave empty to publish all available packages.'
+        type: string
+        default: ''
+      skip-on-empty:
+        description: 'Skip publishing if no semantic commits found'
+        type: boolean
+        default: true
 
 jobs:
   detect-changes:
@@ -23,26 +33,58 @@ jobs:
       - name: Detect changed packages
         id: detect
         run: |
-          # Get changed files in the last commit
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          # All available provider packages
+          ALL_PACKAGES=("mcp-provider-api" "mcp-provider-dx-core" "mcp-provider-code-analyzer")
           
           # Initialize packages array
           PACKAGES='[]'
           HAS_CHANGES=false
           
-          # Check each provider package for changes
-          # for pkg in mcp-provider-api mcp-provider-dx-core mcp-provider-code-analyzer; do
-          for pkg in mcp-provider-api mcp-provider-dx-core; do
-            if echo "$CHANGED_FILES" | grep -q "^packages/$pkg/"; then
-              PACKAGES=$(echo "$PACKAGES" | jq --arg pkg "$pkg" '. += [$pkg]')
-              HAS_CHANGES=true
-              echo "Detected changes in: $pkg"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual workflow dispatch detected"
+            
+            if [ -n "${{ inputs.packages }}" ]; then
+              # Parse comma-separated input
+              IFS=',' read -ra SPECIFIED_PACKAGES <<< "${{ inputs.packages }}"
+              for pkg in "${SPECIFIED_PACKAGES[@]}"; do
+                # Trim whitespace
+                pkg=$(echo "$pkg" | xargs)
+                # Validate package exists
+                if [[ " ${ALL_PACKAGES[@]} " =~ " ${pkg} " ]]; then
+                  PACKAGES=$(echo "$PACKAGES" | jq --arg pkg "$pkg" '. += [$pkg]')
+                  HAS_CHANGES=true
+                  echo "Manual publish requested for: $pkg"
+                else
+                  echo "Warning: Unknown package '$pkg' specified, skipping"
+                fi
+              done
+            else
+              # No packages specified, publish auto-publishable packages only
+              # code-analyzer is excluded from bulk operations and must be specified explicitly
+              for pkg in mcp-provider-api mcp-provider-dx-core; do
+                PACKAGES=$(echo "$PACKAGES" | jq --arg pkg "$pkg" '. += [$pkg]')
+                HAS_CHANGES=true
+                echo "Manual publish requested for: $pkg"
+              done
             fi
-          done
+          else
+            echo "Push event detected, checking for changed files"
+            # Get changed files in the last commit
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+            
+            # Check each provider package for changes (only auto-publish enabled packages)
+            for pkg in mcp-provider-api mcp-provider-dx-core; do
+              if echo "$CHANGED_FILES" | grep -q "^packages/$pkg/"; then
+                PACKAGES=$(echo "$PACKAGES" | jq --arg pkg "$pkg" '. += [$pkg]')
+                HAS_CHANGES=true
+                echo "Detected changes in: $pkg"
+              fi
+            done
+          fi
           
           echo "packages=$PACKAGES" >> "$GITHUB_OUTPUT"
           echo "has-changes=$HAS_CHANGES" >> "$GITHUB_OUTPUT"
-          echo "Changed packages: $PACKAGES"
+          echo "Final packages to process: $PACKAGES"
 
   publish-package:
     needs: detect-changes
@@ -85,7 +127,7 @@ jobs:
           github-token: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
           tag-prefix: "${{ matrix.package }}@"
           release-count: "0"
-          skip-on-empty: true
+          skip-on-empty: ${{ github.event_name == 'push' || inputs.skip-on-empty }}
           git-path: "packages/${{ matrix.package }}"
           version-file: "packages/${{ matrix.package }}/package.json"
           output-file: "packages/${{ matrix.package }}/CHANGELOG.md"
