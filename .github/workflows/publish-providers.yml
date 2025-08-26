@@ -51,7 +51,7 @@ jobs:
                 pkg=$(echo "$pkg" | xargs)
                 # Validate package exists
                 if [[ " ${ALL_PACKAGES[@]} " =~ " ${pkg} " ]]; then
-                  PACKAGES=$(echo "$PACKAGES" | jq --arg pkg "$pkg" '. += [$pkg]')
+                  PACKAGES=$(echo "$PACKAGES" | jq -c --arg pkg "$pkg" '. += [$pkg]')
                   HAS_CHANGES=true
                   echo "Manual publish requested for: $pkg"
                 else
@@ -62,7 +62,7 @@ jobs:
               # No packages specified, publish auto-publishable packages only
               # code-analyzer is excluded from bulk operations and must be specified explicitly
               for pkg in mcp-provider-api mcp-provider-dx-core; do
-                PACKAGES=$(echo "$PACKAGES" | jq --arg pkg "$pkg" '. += [$pkg]')
+                PACKAGES=$(echo "$PACKAGES" | jq -c --arg pkg "$pkg" '. += [$pkg]')
                 HAS_CHANGES=true
                 echo "Manual publish requested for: $pkg"
               done
@@ -75,7 +75,7 @@ jobs:
             # Check each provider package for changes (only auto-publish enabled packages)
             for pkg in mcp-provider-api mcp-provider-dx-core; do
               if echo "$CHANGED_FILES" | grep -q "^packages/$pkg/"; then
-                PACKAGES=$(echo "$PACKAGES" | jq --arg pkg "$pkg" '. += [$pkg]')
+                PACKAGES=$(echo "$PACKAGES" | jq -c --arg pkg "$pkg" '. += [$pkg]')
                 HAS_CHANGES=true
                 echo "Detected changes in: $pkg"
               fi
