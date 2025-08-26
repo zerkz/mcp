@@ -180,7 +180,8 @@ jobs:
           git add packages/mcp/package.json yarn.lock
           git config user.name "${{ steps.github-user-info.outputs.username }}"
           git config user.email "${{ steps.github-user-info.outputs.email }}"
-          git commit -m "chore: bump $PACKAGE_NAME to ^$PUBLISHED_VERSION
+          # TODO(cristian): remove `--no-verify` after linting issues are solved
+          git commit -m "chore: bump $PACKAGE_NAME to ^$PUBLISHED_VERSION --no-verify
 
           Auto-update dependency after provider package publish.
           

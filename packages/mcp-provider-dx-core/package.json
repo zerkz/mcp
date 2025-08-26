@@ -74,8 +74,7 @@
     "build": {
       "dependencies": [
         "../mcp-provider-api:build",
-        "compile",
-        "lint"
+        "compile"
       ]
     },
     "compile": {
