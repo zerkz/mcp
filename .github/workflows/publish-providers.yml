@@ -170,7 +170,7 @@ jobs:
           
           # Update the dependency in main server's package.json using jq
           cd packages/mcp
-          jq --arg pkg "$PACKAGE_NAME" --arg ver "^$PUBLISHED_VERSION" \
+          jq --arg pkg "$PACKAGE_NAME" --arg ver "$PUBLISHED_VERSION" \
             '.dependencies[$pkg] = $ver' package.json > package.json.tmp
           mv package.json.tmp package.json
           
@@ -185,7 +185,7 @@ jobs:
           git config user.name "${{ steps.github-user-info.outputs.username }}"
           git config user.email "${{ steps.github-user-info.outputs.email }}"
           # TODO(cristian): remove `--no-verify` after linting issues are solved
-          git commit -m "chore: bump $PACKAGE_NAME to ^$PUBLISHED_VERSION --no-verify
+          git commit -m "chore: bump $PACKAGE_NAME to $PUBLISHED_VERSION --no-verify
 
           Auto-update dependency after provider package publish.
           

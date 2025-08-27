@@ -71,18 +71,18 @@ jobs:
             # Get latest version from npm
             LATEST_VERSION=$(npm show "$provider" version)
             
-            if [ "$CURRENT_VERSION" != "^$LATEST_VERSION" ]; then
-              echo "Updating $provider from $CURRENT_VERSION to ^$LATEST_VERSION"
+            if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+              echo "Updating $provider from $CURRENT_VERSION to $LATEST_VERSION"
               
               # Update using jq (similar to provider workflow)
-              jq --arg pkg "$provider" --arg ver "^$LATEST_VERSION" \
+              jq --arg pkg "$provider" --arg ver "$LATEST_VERSION" \
                 '.dependencies[$pkg] = $ver' package.json > package.json.tmp
               mv package.json.tmp package.json
               
               UPDATED_PACKAGES+=("$provider")
               HAS_UPDATES=true
             else
-              echo "$provider is already at latest version (^$LATEST_VERSION)"
+              echo "$provider is already at latest version ($LATEST_VERSION)"
             fi
           done
           
