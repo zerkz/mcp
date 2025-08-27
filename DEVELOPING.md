@@ -122,7 +122,7 @@ Once your provider is ready for release, you can publish it and optionally trigg
 - For manual-schedule providers like `mcp-provider-code-analyzer`, use: `gh workflow run publish-providers --field packages='mcp-provider-your-feature'`
 
 ### Full server release (includes your provider):
-1. First ensure your provider is published: `gh workflow run publish-providers --field packages='mcp-provider-your-feature'`
+1. First ensure your provider is published: `gh workflow run publish-providers --field packages='mcp-provider-YOUR_PROVIDER'`
 2. Then release the main server with updated dependencies: `gh workflow run publish-mcp-server --field update-providers=true`
 
 ### Server release with all latest providers:
