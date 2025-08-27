@@ -91,6 +91,8 @@ jobs:
           # Update lockfile and commit changes if any updates were made
           if [ "$HAS_UPDATES" = true ]; then
             cd ../../
+            # TODO(cristian): need to nuke all `node_modules` to cleanup some dep, running `yarn install` 2 times fails at the second run.
+            git clean -fdx
             yarn install
             
             git config user.name "${{ steps.github-user-info.outputs.username }}"
