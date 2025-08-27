@@ -107,7 +107,9 @@ jobs:
 
   publish-server:
     needs: [update-dependencies]
-    if: always() && (needs.update-dependencies.result == 'success' || needs.update-dependencies.result == 'skipped')
+    # Skip publishing if update-providers=true but no provider updates were needed
+    # Logic: Run if (manual release) OR (provider updates were requested AND updates were found)
+    if: always() && (needs.update-dependencies.result == 'success' || needs.update-dependencies.result == 'skipped') && (!inputs.update-providers || needs.update-dependencies.outputs.has-updates == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
