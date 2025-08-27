@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - cd/fix-publish-workflows
     paths:
       - 'packages/mcp-provider-api/**'
       - 'packages/mcp-provider-dx-core/**'  
