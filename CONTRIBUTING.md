@@ -32,7 +32,9 @@ Agreement. You can do so by going to https://cla.salesforce.com/sign-cla.
 - Develop features and bug fixes in _topic_ branches off main, or forks.
 - _Topic_ branches can live in forks (external contributors) or within this repository (committers).
   - When creating _topic_ branches in this repository please prefix with `<initials>/`. For example: `mb/refactor-tests`.
-- PRs will be reviewed and merged by committers.
+- PRs will be reviewed for adherence to coding standards, completeness, potential impact on the codebase, and security concerns.
+- All changes must be accompanied by appropriate tests and documentation updates.
+- If approved, admins will merge the PR.
 
 ## Releasing
 
