@@ -119,7 +119,7 @@ Once your provider is ready for release, you can publish it and optionally trigg
 ### Provider-only release (automatic on main branch):
 - Push changes to `main` branch - providers in the auto-publish list (`mcp-provider-api`, `mcp-provider-dx-core`) will automatically publish when changes are detected
 - To opt-in to auto-publishing: add your provider to the `AUTO_PUBLISHABLE_PACKAGES` array in `.github/workflows/publish-providers.yml` and in the `on.push.paths` array.
-- For manual-schedule providers like `mcp-provider-code-analyzer`, use: `gh workflow run publish-providers --field packages='mcp-provider-your-feature'`
+- For manual-schedule providers like `mcp-provider-code-analyzer`, use: `gh workflow run publish-providers --field packages='mcp-provider-YOUR_PROVIDER'`
 
 ### Full server release (includes your provider):
 1. First ensure your provider is published: `gh workflow run publish-providers --field packages='mcp-provider-YOUR_PROVIDER'`
