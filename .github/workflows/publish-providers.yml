@@ -33,6 +33,9 @@ jobs:
       - name: Detect changed packages
         id: detect
         run: |
+          # Packages that auto-publish on push to main
+          AUTO_PUBLISHABLE_PACKAGES=("mcp-provider-api" "mcp-provider-dx-core")
+          
           # All available provider packages
           ALL_PACKAGES=("mcp-provider-api" "mcp-provider-dx-core" "mcp-provider-code-analyzer")
           
@@ -61,7 +64,7 @@ jobs:
             else
               # No packages specified, publish auto-publishable packages only
               # code-analyzer is excluded from bulk operations and must be specified explicitly
-              for pkg in mcp-provider-api mcp-provider-dx-core; do
+              for pkg in "${AUTO_PUBLISHABLE_PACKAGES[@]}"; do
                 PACKAGES=$(echo "$PACKAGES" | jq -c --arg pkg "$pkg" '. += [$pkg]')
                 HAS_CHANGES=true
                 echo "Manual publish requested for: $pkg"
@@ -73,7 +76,7 @@ jobs:
             CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
             
             # Check each provider package for changes (only auto-publish enabled packages)
-            for pkg in mcp-provider-api mcp-provider-dx-core; do
+            for pkg in "${AUTO_PUBLISHABLE_PACKAGES[@]}"; do
               if echo "$CHANGED_FILES" | grep -q "^packages/$pkg/"; then
                 PACKAGES=$(echo "$PACKAGES" | jq -c --arg pkg "$pkg" '. += [$pkg]')
                 HAS_CHANGES=true
