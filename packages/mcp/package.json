@@ -85,7 +85,8 @@
   "wireit": {
     "build": {
       "dependencies": [
-        "compile"
+        "compile",
+        "lint"
       ]
     },
     "compile": {
