@@ -10,7 +10,7 @@ The Salesforce DX MCP Server is a specialized Model Context Protocol (MCP) imple
 
 ## Feedback
 
-Please report bugs and issues [here](https://github.com/forcedotcom/mcp/issues).
+Report bugs and issues [here](https://github.com/forcedotcom/mcp/issues).
 For feature requests and other related topics, please start a Discussion [here](https://github.com/forcedotcom/mcp/discussions).
 
 Key Features:
