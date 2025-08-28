@@ -73,7 +73,7 @@ export class CodeAnalyzerDescribeRuleMcpTool extends McpTool<InputArgsShape, Out
     }
 
     public getName(): string {
-        return "sf-code-analyzer-describe-rule"; 
+        return "describe_code_analyzer_rule";
     }
 
     public getConfig(): McpToolConfig<InputArgsShape, OutputArgsShape> {

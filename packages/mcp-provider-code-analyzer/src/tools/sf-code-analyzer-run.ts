@@ -69,7 +69,7 @@ export class CodeAnalyzerRunMcpTool extends McpTool<InputArgsShape, OutputArgsSh
     }
 
     public getName(): string {
-        return "sf-code-analyzer-run"; 
+        return "run_code_analysis";
     }
 
     public getConfig(): McpToolConfig<InputArgsShape, OutputArgsShape> {
