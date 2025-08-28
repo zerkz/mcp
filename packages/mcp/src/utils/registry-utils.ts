@@ -68,7 +68,7 @@ export async function registerToolsets(
 async function registerTools(tools: McpTool[], server: SfMcpServer, useDynamicTools: boolean, allowNonGaTools: boolean): Promise<void> {
   for (const tool of tools) {
     if (!allowNonGaTools && tool.getReleaseState() === ReleaseState.NON_GA) {
-      ux.stderr(`* Skipping registration of non-ga tool '${tool.getName()}' because the server is currently set to not allow non-ga tools.`);
+      ux.stderr(`* Skipping registration of non-ga tool '${tool.getName()}' because the '--allow-non-ga-tools' flag was not set at server startup.`);
       continue;
     }
     const registeredTool = server.registerTool(tool.getName(), tool.getConfig(), (...args) => tool.exec(...args));

@@ -13,14 +13,8 @@ export abstract class McpTool<
 
   /**
    * Returns the release state of the tool.
-   * 
-   * Default: NON_GA (Not General Availability)
-   * 
-   * McpTool instances which are GA ready should override this method with a GA release state.
    */
-  public getReleaseState(): ReleaseState {
-    return ReleaseState.NON_GA;
-  }
+  public abstract getReleaseState(): ReleaseState
 
   /**
    * Returns one or more toolsets that the tool should be associated with
