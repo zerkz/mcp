@@ -29,7 +29,7 @@ import { textResponse } from '../shared/utils.js';
  * Deploy metadata to a Salesforce org.
  *
  * Parameters:
- * - sourceDir: Path to the local source files to deploy.
+ * - filePaths: Path(s) to the local source files to deploy.
  * - manifest: Full file path for manifest (XML file) of components to deploy.
  * - apexTestLevel: Apex test level to use during deployment.
  * - apexTests: Apex tests classes to run.
@@ -41,9 +41,9 @@ import { textResponse } from '../shared/utils.js';
  */
 
 const deployMetadataParams = z.object({
-  sourceDir: z
+  filePaths: z
     .array(z.string())
-    .describe('Path to the local source files to deploy. Leave this unset if the user is vague about what to deploy.')
+    .describe('File path(s) to the local source files to deploy. If unset, the tool will use source-tracking to detect which files to deploy')
     .optional(),
   manifest: z.string().describe('Full file path for manifest (XML file) of components to deploy.').optional(),
   // `RunSpecifiedTests` is excluded on purpose because the tool sets this level when Apex tests to run are passed in.
@@ -103,17 +103,11 @@ export class DeployMetadataMcpTool extends McpTool<InputArgsShape, OutputArgsSha
   public getConfig(): McpToolConfig<InputArgsShape, OutputArgsShape> {
     return {
       title: 'Deploy Metadata',
-      description: `Deploy metadata to an org from your local project.
+      description: `Deploy metadata to a Salesforce org
 
-AGENT INSTRUCTIONS:
-If the user doesn't specify what to deploy exactly ("deploy my changes"), leave the "sourceDir" and "manifest" params empty so the tool calculates which files to deploy.
-
-EXAMPLE USAGE:
-Deploy changes to my org
-Deploy this file to my org
-Deploy the manifest
-Deploy X metadata to my org
-Deploy X to my org and run A,B and C apex tests.`,
+WHEN TO USE THIS TOOL:
+- The user wants to deploy metadata to a Salesforce org
+- The user wants to deploy metadata and run Apex tests in the same operation`,
       inputSchema: deployMetadataParams.shape,
       outputSchema: undefined,
       annotations: {
@@ -128,8 +122,8 @@ Deploy X to my org and run A,B and C apex tests.`,
       return textResponse("You can't specify both `apexTests` and `apexTestLevel` parameters.", true);
     }
 
-    if (input.sourceDir && input.manifest) {
-      return textResponse("You can't specify both `sourceDir` and `manifest` parameters.", true);
+    if (input.filePaths && input.manifest) {
+      return textResponse("You can't specify both `filePaths` and `manifest` parameters.", true);
     }
 
     if (!input.usernameOrAlias)
@@ -146,7 +140,7 @@ Deploy X to my org and run A,B and C apex tests.`,
 
     const org = await Org.create({ connection });
 
-    if (!input.sourceDir && !input.manifest && !(await org.tracksSource())) {
+    if (!input.filePaths && !input.manifest && !(await org.tracksSource())) {
       return textResponse(
         'This org does not have source-tracking enabled or does not support source-tracking. You should specify the files or a manifest to deploy.',
         true
@@ -161,7 +155,7 @@ Deploy X to my org and run A,B and C apex tests.`,
         subscribeSDREvents: true,
       });
 
-      const componentSet = await buildDeployComponentSet(connection, project, stl, input.sourceDir, input.manifest);
+      const componentSet = await buildDeployComponentSet(connection, project, stl, input.filePaths, input.manifest);
 
       if (componentSet.size === 0) {
         // STL found no changes
