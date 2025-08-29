@@ -122,10 +122,11 @@ export class GetUsernameMcpTool extends McpTool<InputArgsShape, OutputArgsShape>
   public getConfig(): McpToolConfig<InputArgsShape, OutputArgsShape> {
     return {
       title: 'Get Username',
-      description: `Intelligently determines the appropriate username or alias for Salesforce operations.
+      description: `Intelligently determines the appropriate org username or alias to use for Salesforce operations.
 
-AGENT/LLM INSTRUCTIONS:
-Use this tool when uncertain which username/org a user wants for Salesforce operations.
+WHEN TO USE THIS TOOL:
+- When uncertain which org username a user wants to use for Salesforce operations.
+
 This tool handles three distinct scenarios:
 
 1. When defaultTargetOrg=true: Fetches the default target org configuration
