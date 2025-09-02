@@ -16,6 +16,8 @@ import {
     FactoryForThrowingPlugin3,
     FactoryWithErrorLoggingPlugin
 } from "../stubs/EnginePluginFactories.js";
+import {SendTelemetryEvent, SpyTelemetryService} from "../test-doubles.js";
+import * as Constants from "../../src/constants.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -174,4 +176,34 @@ describe('RunAnalyzerActionImpl', () => {
             expect(output.resultsFile).toBeUndefined();
         }
     }, 15_000);
+
+    describe('Telemetry Emission', () => {
+        it('When a telemetry service is provided, it is used', async () => {
+            const input: RunInput = {
+                target: [path.join(PATH_TO_SAMPLE_TARGETS, 'ApexTarget1.cls')]
+            };
+
+            const spyTelemetryService: SpyTelemetryService = new SpyTelemetryService();
+
+            const action: RunAnalyzerActionImpl = new RunAnalyzerActionImpl({
+                configFactory: new CodeAnalyzerConfigFactoryImpl(),
+                enginePluginsFactory: new FactoryWithErrorLoggingPlugin(),
+                telemetryService: spyTelemetryService
+            });
+
+            await action.exec(input);
+
+            const telemetryEvents: SendTelemetryEvent[] = spyTelemetryService.sendEventCallHistory;
+
+            expect(telemetryEvents).toHaveLength(4);
+            expect(telemetryEvents[0].event.source!).toEqual('EngineThatLogsError')
+            expect(telemetryEvents[0].event.sfcaEvent!).toEqual('DescribeRuleTelemetryEvent');
+            expect(telemetryEvents[1].event.source!).toEqual('EngineThatLogsError')
+            expect(telemetryEvents[1].event.sfcaEvent!).toEqual('RunRulesTelemetryEvent');
+            expect(telemetryEvents[2].event.source!).toEqual('MCP')
+            expect(telemetryEvents[2].event.sfcaEvent!).toEqual(Constants.McpTelemetryEvents.ENGINE_SELECTION);
+            expect(telemetryEvents[3].event.source!).toEqual('MCP')
+            expect(telemetryEvents[3].event.sfcaEvent!).toEqual(Constants.McpTelemetryEvents.ENGINE_EXECUTION);
+        });
+    });
 })
