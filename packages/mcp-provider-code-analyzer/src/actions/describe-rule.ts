@@ -6,6 +6,7 @@ import { CodeAnalyzerConfigFactory } from "../factories/CodeAnalyzerConfigFactor
 import { EnginePluginsFactory } from "../factories/EnginePluginsFactory.js";
 import { getMessage } from "../messages.js";
 import { ErrorCapturer } from "../listeners/ErrorCapturer.js";
+import * as Constants from "../constants.js";
 import {TelemetryListenerFactory} from "../factories/TelemetryListenerFactory.js";
 
 type DescribeRuleActionOptions = {
@@ -105,9 +106,16 @@ export class DescribeRuleActionImpl implements DescribeRuleAction {
         const selectedEngineNames: Set<string> = new Set(ruleSelection.getEngineNames());
         for (const coreEngineName of coreEngineNames) {
             if (!selectedEngineNames.has(coreEngineName)) {
-                // continue;
+                continue;
             }
-            // TODO: TELEMETRY HERE.
+            if (this.telemetryService) {
+                this.telemetryService.sendEvent(Constants.TelemetryEventName, {
+                    source: Constants.TelemetrySource,
+                    sfcaEvent: Constants.McpTelemetryEvents.ENGINE_SELECTION,
+                    engine: coreEngineName,
+                    ruleCount: ruleSelection.getRulesFor(coreEngineName).length
+                })
+            }
         }
     }
 }

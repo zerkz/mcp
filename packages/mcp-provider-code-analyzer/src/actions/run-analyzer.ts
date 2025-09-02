@@ -11,6 +11,7 @@ import { ErrorCapturer } from "../listeners/ErrorCapturer.js";
 import {TelemetryService} from "@salesforce/mcp-provider-api";
 import {TelemetryListenerFactory} from "../factories/TelemetryListenerFactory.js";
 import {TelemetryListener} from "../listeners/TelemetryListener.js";
+import * as Constants from "../constants.js";
 
 
 type RunAnalyzerActionOptions = {
@@ -124,9 +125,22 @@ export class RunAnalyzerActionImpl implements RunAnalyzerAction {
         const selectedEngineNames: Set<string> = new Set(ruleSelection.getEngineNames());
         for (const coreEngineName of coreEngineNames) {
             if (!selectedEngineNames.has(coreEngineName)) {
-                //continue;
+                continue;
             }
-            // TODO: TELEMETRY HERE.
+            if (this.telemetryService) {
+                this.telemetryService.sendEvent(Constants.TelemetryEventName, {
+                    source: Constants.TelemetrySource,
+                    sfcaEvent: Constants.McpTelemetryEvents.ENGINE_SELECTION,
+                    engine: coreEngineName,
+                    ruleCount: ruleSelection.getRulesFor(coreEngineName).length
+                })
+                this.telemetryService.sendEvent(Constants.TelemetryEventName, {
+                    source: Constants.TelemetrySource,
+                    sfcaEvent: Constants.McpTelemetryEvents.ENGINE_EXECUTION,
+                    engine: coreEngineName,
+                    ruleCount: results.getEngineRunResults(coreEngineName).getViolationCount()
+                })
+            }
         }
     }
 }
