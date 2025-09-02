@@ -6,6 +6,7 @@ import { CodeAnalyzerConfigFactory } from "../factories/CodeAnalyzerConfigFactor
 import { EnginePluginsFactory } from "../factories/EnginePluginsFactory.js";
 import { getMessage } from "../messages.js";
 import { ErrorCapturer } from "../listeners/ErrorCapturer.js";
+import {TelemetryListenerFactory} from "../factories/TelemetryListenerFactory.js";
 
 type DescribeRuleActionOptions = {
     configFactory: CodeAnalyzerConfigFactory
@@ -39,10 +40,12 @@ export interface DescribeRuleAction {
 export class DescribeRuleActionImpl implements DescribeRuleAction {
     private readonly configFactory: CodeAnalyzerConfigFactory;
     private readonly enginePluginsFactory: EnginePluginsFactory;
+    private readonly telemetryService?: TelemetryService
 
     public constructor(options: DescribeRuleActionOptions) {
         this.configFactory = options.configFactory;
         this.enginePluginsFactory = options.enginePluginsFactory;
+        this.telemetryService = options.telemetryService
     }
 
     public async exec(input: DescribeRuleInput): Promise<DescribeRuleOutput> {
@@ -56,11 +59,13 @@ export class DescribeRuleActionImpl implements DescribeRuleAction {
         }
 
         const errorCapturer: ErrorCapturer = new ErrorCapturer();
-
         errorCapturer.listen(analyzer);
 
+        const telemetryListener = new TelemetryListenerFactory().create(this.telemetryService)
+        telemetryListener.listen(analyzer)
+
+        const enginePlugins: EnginePlugin[] = this.enginePluginsFactory.create();
         try {
-            const enginePlugins: EnginePlugin[] = this.enginePluginsFactory.create();
             for (const enginePlugin of enginePlugins) {
                 await analyzer.addEnginePlugin(enginePlugin);
             }
@@ -71,6 +76,7 @@ export class DescribeRuleActionImpl implements DescribeRuleAction {
         }
 
         const ruleSelection: RuleSelection = await analyzer.selectRules([`${input.ruleName}:${input.engineName}`]);
+        this.emitEngineTelemetry(ruleSelection, enginePlugins.flatMap(p => p.getAvailableEngineNames()));
 
         if (ruleSelection.getCount() === 0) {
             const capturedErrors: string[] = errorCapturer.getCapturedEvents();
@@ -93,5 +99,15 @@ export class DescribeRuleActionImpl implements DescribeRuleAction {
                 tags: rule.getTags()
             }
         };
+    }
+
+    private emitEngineTelemetry(ruleSelection: RuleSelection, coreEngineNames: string[]): void {
+        const selectedEngineNames: Set<string> = new Set(ruleSelection.getEngineNames());
+        for (const coreEngineName of coreEngineNames) {
+            if (!selectedEngineNames.has(coreEngineName)) {
+                // continue;
+            }
+            // TODO: TELEMETRY HERE.
+        }
     }
 }

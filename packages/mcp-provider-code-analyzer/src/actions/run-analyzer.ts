@@ -9,6 +9,8 @@ import { CodeAnalyzerConfigFactory } from "../factories/CodeAnalyzerConfigFactor
 import { EnginePluginsFactory } from "../factories/EnginePluginsFactory.js";
 import { ErrorCapturer } from "../listeners/ErrorCapturer.js";
 import {TelemetryService} from "@salesforce/mcp-provider-api";
+import {TelemetryListenerFactory} from "../factories/TelemetryListenerFactory.js";
+import {TelemetryListener} from "../listeners/TelemetryListener.js";
 
 
 type RunAnalyzerActionOptions = {
@@ -35,10 +37,12 @@ export interface RunAnalyzerAction {
 export class RunAnalyzerActionImpl implements RunAnalyzerAction {
     private readonly configFactory: CodeAnalyzerConfigFactory;
     private readonly enginePluginsFactory: EnginePluginsFactory;
+    private readonly telemetryService?: TelemetryService
 
     public constructor(options: RunAnalyzerActionOptions) {
         this.configFactory = options.configFactory;
         this.enginePluginsFactory = options.enginePluginsFactory;
+        this.telemetryService = options.telemetryService;
     }
 
     public async exec(input: RunInput): Promise<RunOutput> {
@@ -52,11 +56,13 @@ export class RunAnalyzerActionImpl implements RunAnalyzerAction {
         }
 
         const errorCapturer: ErrorCapturer = new ErrorCapturer();
-
         errorCapturer.listen(analyzer);
 
+        const telemetryListener: TelemetryListener = new TelemetryListenerFactory().create(this.telemetryService);
+        telemetryListener.listen(analyzer)
+
+        const enginePlugins: EnginePlugin[] = this.enginePluginsFactory.create();
         try {
-            const enginePlugins: EnginePlugin[] = this.enginePluginsFactory.create();
             for (const enginePlugin of enginePlugins) {
                 await analyzer.addEnginePlugin(enginePlugin);
             }
@@ -75,6 +81,7 @@ export class RunAnalyzerActionImpl implements RunAnalyzerAction {
         const ruleSelection: RuleSelection = await analyzer.selectRules(['recommended'], {workspace});
 
         const results: RunResults = await analyzer.run(ruleSelection, {workspace});
+        this.emitEngineTelemetry(ruleSelection, results, enginePlugins.flatMap(p => p.getAvailableEngineNames()));
 
         const resultsFile: string = await this.writeResults(results);
 
@@ -111,6 +118,16 @@ export class RunAnalyzerActionImpl implements RunAnalyzerAction {
         const seconds: string = String(dateTime.getSeconds()).padStart(2, '0');
         const milliseconds: string = String(dateTime.getMilliseconds()).padStart(3, '0');
         return `code-analyzer-results-${year}_${month}_${day}_${hours}_${minutes}_${seconds}_${milliseconds}.json`;
+    }
+
+    private emitEngineTelemetry(ruleSelection: RuleSelection, results: RunResults, coreEngineNames: string[]): void {
+        const selectedEngineNames: Set<string> = new Set(ruleSelection.getEngineNames());
+        for (const coreEngineName of coreEngineNames) {
+            if (!selectedEngineNames.has(coreEngineName)) {
+                //continue;
+            }
+            // TODO: TELEMETRY HERE.
+        }
     }
 }
 
