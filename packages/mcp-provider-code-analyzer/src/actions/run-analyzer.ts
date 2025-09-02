@@ -8,11 +8,13 @@ import {getMessage} from "../messages.js";
 import { CodeAnalyzerConfigFactory } from "../factories/CodeAnalyzerConfigFactory.js";
 import { EnginePluginsFactory } from "../factories/EnginePluginsFactory.js";
 import { ErrorCapturer } from "../listeners/ErrorCapturer.js";
+import {TelemetryService} from "@salesforce/mcp-provider-api";
 
 
 type RunAnalyzerActionOptions = {
     configFactory: CodeAnalyzerConfigFactory
     enginePluginsFactory: EnginePluginsFactory
+    telemetryService?: TelemetryService
 }
 
 // NOTE: THIS MUST ALIGN WITH THE ZOD SCHEMA DEFINED IN `sf-code-analyzer-run.ts`.

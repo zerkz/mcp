@@ -1,6 +1,7 @@
 import {EnginePlugin} from "@salesforce/code-analyzer-engine-api";
 import {CodeAnalyzer, Rule, RuleSelection} from "@salesforce/code-analyzer-core";
 import { getErrorMessage } from "../utils.js";
+import { TelemetryService } from "@salesforce/mcp-provider-api";
 import { CodeAnalyzerConfigFactory } from "../factories/CodeAnalyzerConfigFactory.js";
 import { EnginePluginsFactory } from "../factories/EnginePluginsFactory.js";
 import { getMessage } from "../messages.js";
@@ -9,6 +10,7 @@ import { ErrorCapturer } from "../listeners/ErrorCapturer.js";
 type DescribeRuleActionOptions = {
     configFactory: CodeAnalyzerConfigFactory
     enginePluginsFactory: EnginePluginsFactory
+    telemetryService?: TelemetryService
 }
 
 // NOTE: THIS MUST ALIGN WITH THE ZOD SCHEMA DEFINED IN `sf-code-analyzer-describe-rule.ts`.
