@@ -23,6 +23,7 @@ on:
         required: false
       TESTKIT_HUB_INSTANCE:
         required: false
+
   inputs:
       command:
         required: false
