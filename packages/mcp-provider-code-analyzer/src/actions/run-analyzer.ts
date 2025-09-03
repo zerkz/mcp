@@ -138,7 +138,7 @@ export class RunAnalyzerActionImpl implements RunAnalyzerAction {
                     source: Constants.TelemetrySource,
                     sfcaEvent: Constants.McpTelemetryEvents.ENGINE_EXECUTION,
                     engine: coreEngineName,
-                    ruleCount: results.getEngineRunResults(coreEngineName).getViolationCount()
+                    violationCount: results.getEngineRunResults(coreEngineName).getViolationCount()
                 })
             }
         }
