@@ -25,21 +25,21 @@ on:
         required: false
 
   inputs:
-      command:
-        required: false
-        type: string
-        default: yarn test:nuts
-        description: "command to execute (ex: yarn test:nuts)"
-      os:
-        required: false
-        description: "runs-on property, ex: ubuntu-latest, windows-latest"
-        type: string
-        default: "ubuntu-latest"
-      retries:
-        required: false
-        type: number
-        default: 3
-        description: "Number of times to attempt NUTs"
+    command:
+      required: false
+      type: string
+      default: yarn test:nuts
+      description: "command to execute (ex: yarn test:nuts)"
+    os:
+      required: false
+      description: "runs-on property, ex: ubuntu-latest, windows-latest"
+      type: string
+      default: "ubuntu-latest"
+    retries:
+      required: false
+      type: number
+      default: 3
+      description: "Number of times to attempt NUTs"
 
 jobs:
   e2e:
