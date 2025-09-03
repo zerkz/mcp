@@ -196,14 +196,14 @@ describe('RunAnalyzerActionImpl', () => {
             const telemetryEvents: SendTelemetryEvent[] = spyTelemetryService.sendEventCallHistory;
 
             expect(telemetryEvents).toHaveLength(4);
-            expect(telemetryEvents[0].event.source!).toEqual('EngineThatLogsError')
-            expect(telemetryEvents[0].event.sfcaEvent!).toEqual('DescribeRuleTelemetryEvent');
-            expect(telemetryEvents[1].event.source!).toEqual('EngineThatLogsError')
-            expect(telemetryEvents[1].event.sfcaEvent!).toEqual('RunRulesTelemetryEvent');
-            expect(telemetryEvents[2].event.source!).toEqual('MCP')
-            expect(telemetryEvents[2].event.sfcaEvent!).toEqual(Constants.McpTelemetryEvents.ENGINE_SELECTION);
-            expect(telemetryEvents[3].event.source!).toEqual('MCP')
-            expect(telemetryEvents[3].event.sfcaEvent!).toEqual(Constants.McpTelemetryEvents.ENGINE_EXECUTION);
+            expect(telemetryEvents[0].event.source).toEqual('EngineThatLogsError')
+            expect(telemetryEvents[0].event.sfcaEvent).toEqual('DescribeRuleTelemetryEvent');
+            expect(telemetryEvents[1].event.source).toEqual('EngineThatLogsError')
+            expect(telemetryEvents[1].event.sfcaEvent).toEqual('RunRulesTelemetryEvent');
+            expect(telemetryEvents[2].event.source).toEqual('MCP')
+            expect(telemetryEvents[2].event.sfcaEvent).toEqual(Constants.McpTelemetryEvents.ENGINE_SELECTION);
+            expect(telemetryEvents[3].event.source).toEqual('MCP')
+            expect(telemetryEvents[3].event.sfcaEvent).toEqual(Constants.McpTelemetryEvents.ENGINE_EXECUTION);
         });
     });
 })

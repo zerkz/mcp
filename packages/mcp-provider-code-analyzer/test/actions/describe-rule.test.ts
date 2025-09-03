@@ -147,10 +147,10 @@ describe('DescribeRuleActionImpl', () => {
             const telemetryEvents: SendTelemetryEvent[] = telemetryService.sendEventCallHistory;
 
             expect(telemetryEvents).toHaveLength(2);
-            expect(telemetryEvents[0].event.source!).toEqual('EngineThatLogsError')
-            expect(telemetryEvents[0].event.sfcaEvent!).toEqual('DescribeRuleTelemetryEvent');
-            expect(telemetryEvents[1].event.source!).toEqual('MCP')
-            expect(telemetryEvents[1].event.sfcaEvent!).toEqual(Constants.McpTelemetryEvents.ENGINE_SELECTION)
+            expect(telemetryEvents[0].event.source).toEqual('EngineThatLogsError')
+            expect(telemetryEvents[0].event.sfcaEvent).toEqual('DescribeRuleTelemetryEvent');
+            expect(telemetryEvents[1].event.source).toEqual('MCP')
+            expect(telemetryEvents[1].event.sfcaEvent).toEqual(Constants.McpTelemetryEvents.ENGINE_SELECTION)
         });
     });
 });
