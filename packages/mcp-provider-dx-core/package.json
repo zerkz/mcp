@@ -74,17 +74,10 @@
   },
   "wireit": {
     "build": {
-      "dependencies": [
-        "../mcp-provider-api:build",
-        "compile",
-        "lint"
-      ]
+      "command": "yarn compile && yarn lint"
     },
     "compile": {
       "command": "tsc --build --pretty --incremental --verbose",
-      "dependencies": [
-        "../mcp-provider-api:build"
-      ],
       "files": [
         "src/**/*.ts",
         "**/tsconfig.json",
