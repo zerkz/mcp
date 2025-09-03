@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
+import path from 'node:path';
 import { expect } from 'chai';
 import { McpTestClient, TransportFactory } from '@salesforce/mcp-test-client';
 import { TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { getUsernameParamsSchema } from '../../src/tools/sf-get-username.js';
-import path from 'node:path';
 
 describe('sf-get-username', () => {
   // TODO: client name/version should be hardcoded in class
   const client = new McpTestClient({
     name: 'sf-get-username-e2e-test',
     version: '1.0.0',
-    timeout: 600000,
+    timeout: 600_000,
   });
 
   let orgUsername: string;
