@@ -10,24 +10,12 @@
     "url": "git+https://github.com/salesforcecli/mcp.git",
     "directory": "packages/mcp-test-client"
   },
-  "main": "dist/index.js",
+  "main": "dist/index",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./transports": {
-      "types": "./dist/transports.d.ts",
-      "import": "./dist/transports.js"
-    },
-    "./utils": {
-      "types": "./dist/utils.d.ts",
-      "import": "./dist/utils.js"
-    },
-    "./errors": {
-      "types": "./dist/errors.d.ts",
-      "import": "./dist/errors.js"
     }
   },
   "engines": {

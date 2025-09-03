@@ -81,7 +81,7 @@
       ]
     },
     "compile": {
-      "command": "tsc -p . --pretty --incremental",
+      "command": "tsc --build --pretty --incremental --verbose",
       "dependencies": [
         "../mcp-provider-api:build"
       ],
