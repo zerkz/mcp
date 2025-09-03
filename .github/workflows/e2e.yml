@@ -1,0 +1,45 @@
+jobs:
+  e2e:
+    name: ${{ inputs.command }}
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Configure git longpaths if on Windows
+        if: ${{ runner.os == 'Windows' }}
+        run: git config --system core.longpaths true
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: yarn
+
+      - name: Install sf CLI 
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: ${{ inputs.retries }}
+          command: npm install @salesforce/cli@nightly -g
+
+      - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
+
+      - run: yarn build
+
+      - name: E2E tests with ${{ inputs.retries }} attempts
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: ${{ inputs.retries }}
+          command: ${{ inputs.command }}
+          retry_on: error
+        env:
+          TESTKIT_AUTH_URL: ${{ secrets.TESTKIT_AUTH_URL}}
+          TESTKIT_HUB_USERNAME: ${{ secrets.TESTKIT_HUB_USERNAME }}
+          TESTKIT_JWT_CLIENT_ID: ${{ secrets.TESTKIT_JWT_CLIENT_ID }}
+          TESTKIT_JWT_KEY: ${{ secrets.TESTKIT_JWT_KEY }}
+          TESTKIT_HUB_INSTANCE: ${{ secrets.TESTKIT_HUB_INSTANCE }}
+          ONEGP_TESTKIT_AUTH_URL: ${{ secrets.ONEGP_TESTKIT_AUTH_URL }}
+          SF_CHANGE_CASE_SFDX_AUTH_URL: ${{ secrets.SF_CHANGE_CASE_SFDX_AUTH_URL }}
+          SF_CHANGE_CASE_TEMPLATE_ID: ${{ secrets.SF_CHANGE_CASE_TEMPLATE_ID}}
+          SF_CHANGE_CASE_CONFIGURATION_ITEM: ${{ secrets.SF_CHANGE_CASE_CONFIGURATION_ITEM}}
+          TESTKIT_SETUP_RETRIES: 2
+          SF_DISABLE_TELEMETRY: true
+          DEBUG: ${{ vars.DEBUG }}
