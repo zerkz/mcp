@@ -25,6 +25,11 @@ on:
         required: false
 
     inputs:
+      provider:
+        required: true
+        type: string
+        default: mcp-provider-dx-core
+        description: "provider package with e2e tests"
       command:
         required: false
         type: string
@@ -66,6 +71,8 @@ jobs:
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
 
       - run: yarn build
+
+      - run: cd packages/${{ inputs.provider }}
 
       - name: E2E tests with ${{ inputs.retries }} attempts
         uses: salesforcecli/github-workflows/.github/actions/retry@main
