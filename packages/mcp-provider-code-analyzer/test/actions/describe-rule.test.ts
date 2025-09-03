@@ -14,6 +14,7 @@ import { EnginePluginsFactoryImpl } from "../../src/factories/EnginePluginsFacto
 import { FactoryWithThrowingPlugin1, FactoryWithErrorLoggingPlugin } from "../stubs/EnginePluginFactories.js";
 import {SendTelemetryEvent, SpyTelemetryService} from "../test-doubles.js";
 import * as Constants from "../../src/constants.js";
+import {expect} from "vitest";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -148,9 +149,11 @@ describe('DescribeRuleActionImpl', () => {
 
             expect(telemetryEvents).toHaveLength(2);
             expect(telemetryEvents[0].event.source).toEqual('EngineThatLogsError')
+            expect(telemetryEvents[0].event.prop1).toEqual(true)
             expect(telemetryEvents[0].event.sfcaEvent).toEqual('DescribeRuleTelemetryEvent');
             expect(telemetryEvents[1].event.source).toEqual('MCP')
             expect(telemetryEvents[1].event.sfcaEvent).toEqual(Constants.McpTelemetryEvents.ENGINE_SELECTION)
+            expect(telemetryEvents[1].event.ruleCount).toEqual(1)
         });
     });
 });
