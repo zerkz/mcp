@@ -126,7 +126,7 @@
       ]
     },
     "test:only": {
-      "command": "nyc mocha \"test/**/*.test.ts\"",
+      "command": "nyc mocha \"test/**/*.test.ts\" --exclude \"test/e2e/**/*.test.ts\"",
       "env": {
         "FORCE_COLOR": "2"
       },
