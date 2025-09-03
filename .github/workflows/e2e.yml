@@ -72,14 +72,10 @@ jobs:
 
       - run: yarn build
 
-      - run: cd packages/${{ inputs.provider }}
-
       - name: E2E tests with ${{ inputs.retries }} attempts
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: ${{ inputs.retries }}
-          command: ${{ inputs.command }}
-          retry_on: error
+        run: |
+          cd packages/${{ inputs.provider }}
+          ${{ inputs.command }}
         env:
           TESTKIT_AUTH_URL: ${{ secrets.TESTKIT_AUTH_URL}}
           TESTKIT_HUB_USERNAME: ${{ secrets.TESTKIT_HUB_USERNAME }}
