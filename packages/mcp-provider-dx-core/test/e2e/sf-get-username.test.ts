@@ -113,12 +113,12 @@ UNLESS THE USER SPECIFIES OTHERWISE, use this username for the "usernameOrAlias"
 3. The value of '.value' on the config
 4. IF '.cached' IS TRUE, tell then we are using a cached value and if they have changed it, restart the MCP Server
 
-- Full config: {
+- Full config: ${JSON.stringify({
   "key": "target-dev-hub",
   "location": "Local",
-  "value": "${testSession.hubOrg.username}",
-  "path": "${path.join(testSession.project.dir, '.sf', 'config.json')}"
-}
+  "value": testSession.hubOrg.username,
+  "path": path.join(testSession.project.dir, '.sf', 'config.json')
+}, null, 2)}
 
 UNLESS THE USER SPECIFIES OTHERWISE, use this username for the "usernameOrAlias" parameter in future Tool calls.`);
   });
