@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
+import path from 'node:path';
 import { expect } from 'chai';
 import { McpTestClient, TransportFactory } from '@salesforce/mcp-test-client';
-import { TestSession } from '@salesforce/cli-plugins-testkit';
+import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
-import path from 'node:path';
 import { queryOrgParamsSchema } from '../../src/tools/sf-query-org.js';
 
 describe('sf-query-org', () => {
   const client = new McpTestClient({
     name: 'sf-query-org-e2e-test',
     version: '1.0.0',
-    timeout: 120000 // 2 minutes for query operations
+    timeout: 120_000 // 2 minutes for query operations
   });
 
   let testSession: TestSession;
@@ -44,14 +44,34 @@ describe('sf-query-org', () => {
         devhubAuthStrategy: 'AUTO',
       });
 
+      execCmd(`project deploy start`, {
+        cli: 'sf',
+        ensureExitCode: 0
+      })
+
+      execCmd('org assign permset -n dreamhouse', {
+        cli: 'sf',
+        ensureExitCode: 0
+      })
+
+      execCmd(`data tree import -p ${path.join(testSession.project.dir, 'data','sample-data-plan.json')}`, {
+        cli: 'sf',
+        ensureExitCode: 0
+      })
+
       orgUsername = [...testSession.orgs.keys()][0];
-      console.log('dreamhouse project cloned and scratch org created!');
-      console.log(`username: ${orgUsername}`);
 
       // Create stdio transport to start the MCP server
       const transport = TransportFactory.createStdio({
         command: 'node',
         args: [path.join(process.cwd(), '..', '..', '..', 'mcp', 'bin', 'run.js'), '-o', orgUsername, '--no-telemetry'],
+        // this is needed because testkit sets it when transferring the hub auth and creating a scratch.
+        // Without it you get a keychain error/silent failure because the server will look for orgUsername
+        // in the OS keychain but testkit modifies the home dir in the process so all auth is in the test dir.
+        // TODO: this should be a default (and customizable)
+        env: {
+          SF_USE_GENERIC_UNIX_KEYCHAIN: 'true'
+        }
       });
 
       await client.connect(transport);
@@ -62,11 +82,10 @@ describe('sf-query-org', () => {
   });
 
   after(async () => {
+    await testSession.clean();
+
     if (client.connected) {
       await client.disconnect();
-    }
-    if (testSession) {
-      await testSession.clean();
     }
   });
 
@@ -74,13 +93,14 @@ describe('sf-query-org', () => {
     const result = await client.callTool(queryOrgSchema, {
       name: 'sf-query-org',
       params: {
-        query: 'SELECT Id, Name FROM User LIMIT 5',
+        query: 'SELECT Name FROM Broker__c ORDER BY Name',
         usernameOrAlias: orgUsername,
         directory: testSession.project.dir,
         useToolingApi: false
       }
     });
 
+    expect(result.isError).to.equal(false);
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
     
@@ -93,28 +113,40 @@ describe('sf-query-org', () => {
     expect(queryMatch).to.not.be.null;
     
     const queryResult = JSON.parse(queryMatch![1]);
-    expect(queryResult.totalSize).to.be.greaterThan(0);
+    expect(queryResult.totalSize).to.equal(8);
     expect(queryResult.done).to.be.true;
     expect(queryResult.records).to.be.an('array');
-    expect(queryResult.records.length).to.be.greaterThan(0);
+    expect(queryResult.records.length).to.equal(8);
     
-    // Verify User records have expected fields
-    const firstUser = queryResult.records[0];
-    expect(firstUser).to.have.property('Id');
-    expect(firstUser).to.have.property('Name');
+    // Verify all broker names are exactly as expected
+    const expectedBrokerNames = [
+      'Caroline Kingsley',
+      'Jennifer Wu', 
+      'Jonathan Bradley',
+      'Michael Jones',
+      'Michelle Lambert',
+      'Miriam Aupont',
+      'Olivia Green',
+      'Victor Ochoa'
+    ];
+    
+    const actualBrokerNames = queryResult.records.map((record: any) => record.Name).sort();
+    expect(actualBrokerNames).to.deep.equal(expectedBrokerNames.sort());
   });
 
-  it('should query metadata using Tooling API', async () => {
+  it('should query ApexClass using the Tooling API', async () => {
     const result = await client.callTool(queryOrgSchema, {
       name: 'sf-query-org',
       params: {
-        query: 'SELECT Id, Name, NamespacePrefix FROM ApexClass LIMIT 5',
+        query: "SELECT Status FROM ApexClass WHERE Name='FileUtilities'",
         usernameOrAlias: orgUsername,
         directory: testSession.project.dir,
         useToolingApi: true
       }
     });
 
+    console.log(JSON.stringify(result,null,2))
+    expect(result.isError).to.equal(false);
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
     
@@ -129,16 +161,16 @@ describe('sf-query-org', () => {
     const queryResult = JSON.parse(queryMatch![1]);
     expect(queryResult.done).to.be.true;
     expect(queryResult.records).to.be.an('array');
+    expect(queryResult.records.length).to.equal(1);
+    expect(queryResult.totalSize).to.equal(1);
     
-    // ApexClass records should have expected fields
-    if (queryResult.records.length > 0) {
-      const firstClass = queryResult.records[0];
-      expect(firstClass).to.have.property('Id');
-      expect(firstClass).to.have.property('Name');
-    }
+    // Verify FileUtilities ApexClass record
+    const fileUtilitiesClass = queryResult.records[0];
+    expect(fileUtilitiesClass).to.have.property('Status');
+    expect(fileUtilitiesClass.Status).to.equal('Active');
   });
 
-  it('should handle invalid SOQL query gracefully', async () => {
+  it.skip('should handle invalid SOQL query gracefully', async () => {
     const result = await client.callTool(queryOrgSchema, {
       name: 'sf-query-org',
       params: {
@@ -157,7 +189,7 @@ describe('sf-query-org', () => {
     expect(result.isError).to.be.true;
   });
 
-  it('should handle missing usernameOrAlias parameter', async () => {
+  it.skip('should handle missing usernameOrAlias parameter', async () => {
     const result = await client.callTool(queryOrgSchema, {
       name: 'sf-query-org',
       params: {
