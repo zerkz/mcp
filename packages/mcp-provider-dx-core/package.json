@@ -74,7 +74,7 @@
   },
   "wireit": {
     "build": {
-      "command": "yarn compile && yarn lint"
+      "command": "yarn compile"
     },
     "compile": {
       "command": "tsc --build --pretty --incremental --verbose",
