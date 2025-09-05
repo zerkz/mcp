@@ -72,7 +72,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: ${{ inputs.retries }}
-          command: npm install -g @salesforce/mcp@latest
+          command: npm install -g @salesforce/mcp@0.19.2-dev.1
 
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
 
