@@ -63,7 +63,7 @@ describe('sf-query-org', () => {
 
       // Create stdio transport to start the MCP server
       const transport = TransportFactory.createStdio({
-        command: 'sf-mcp-server',
+        command: process.env.SF_MCP_SERVER_BIN ?? 'sf-mcp-server',
         args: ['--orgs', 'ALLOW_ALL_ORGS','--toolsets','all' ],
         // args: [path.join(process.cwd(), '..', '..', '..', 'mcp', 'bin', 'run.js'), '-o', orgUsername, '--no-telemetry'],
         // this is needed because testkit sets it when transferring the hub auth and creating a scratch.
