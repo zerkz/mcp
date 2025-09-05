@@ -63,8 +63,9 @@ describe('sf-query-org', () => {
 
       // Create stdio transport to start the MCP server
       const transport = TransportFactory.createStdio({
-        command: 'node',
-        args: [path.join(process.cwd(), '..', '..', '..', 'mcp', 'bin', 'run.js'), '-o', orgUsername, '--no-telemetry'],
+        command: 'npx',
+        args: ['-y','@salesforce/mcp@0.19.1','--orgs', 'ALLOW_ALL_ORGS','--toolsets','all' ],
+        // args: [path.join(process.cwd(), '..', '..', '..', 'mcp', 'bin', 'run.js'), '-o', orgUsername, '--no-telemetry'],
         // this is needed because testkit sets it when transferring the hub auth and creating a scratch.
         // Without it you get a keychain error/silent failure because the server will look for orgUsername
         // in the OS keychain but testkit modifies the home dir in the process so all auth is in the test dir.
