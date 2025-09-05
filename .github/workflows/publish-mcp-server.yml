@@ -173,9 +173,9 @@ jobs:
         run: |
           cd packages/mcp
           rm -rf node_modules
-          mkdir $TMPDIR/mcp-shrinkwrap
-          cp -r . $TMPDIR/mcp-shrinkwrap
-          cd $TMPDIR/mcp-shrinkwrap
+          mkdir ${{ runner.temp }}/mcp-shrinkwrap
+          cp -r . ${{ runner.temp }}/mcp-shrinkwrap
+          cd ${{ runner.temp }}/mcp-shrinkwrap
           npm install
           npm shrinkwrap
 
