@@ -78,15 +78,9 @@ jobs:
 
       - run: yarn build
 
-      - name: Get sf-mcp-server path (Unix)
-        if: ${{ runner.os != 'Windows' }}
+      - name: Get sf-mcp-server path
         run: echo "SF_MCP_SERVER_BIN=$(which sf-mcp-server)" >> $GITHUB_ENV
         shell: bash
-
-      - name: Get sf-mcp-server path (Windows)
-        if: ${{ runner.os == 'Windows' }}
-        run: echo "SF_MCP_SERVER_BIN=$(where.exe sf-mcp-server)" >> $env:GITHUB_ENV
-        shell: pwsh
 
       - name: E2E tests with ${{ inputs.retries }} attempts
         run: |
