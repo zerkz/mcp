@@ -54,7 +54,7 @@ Agentforce for Developers is an AI-powered Salesforce developer tool that's avai
 
 The Salesforce DX MCP server is pre-configured in Agentforce for Developers, so you can start using the DX MCP tools immediately after you install the extension in VS Code. While the default DX MCP server configuration is designed to meet your needs, you can optionally update it using the instructions in this README. 
 
-See [Chat with Dev Agent (Dev Preview)](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-overview.html) for more information. 
+See [Set Up Agentforce for Developers](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/einstein-setup.html) and [Chat with Dev Agent (Dev Preview)](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-overview.html) for more information. 
 
 ## Get Started Using VS Code as the Client
 
