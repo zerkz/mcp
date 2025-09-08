@@ -50,7 +50,7 @@ The Salesforce DX MCP Server was designed with security as a top priority.
 
 ### Agentforce for Developers Includes the Salesforce DX MCP Server
 
-Agentforce for Developers is an AI-powered Salesforce developer tool that's available as an easy-to-install Visual Studio Code (VS Code) extension. It includes Dev Agent (Dev Preview), an intelligent coding partner that provides information and, most importantly, can take action. Through agentic chat powered by MCP, Dev Agent can execute commands and perform complex workflows automatically, right from within VS Code.
+Agentforce for Developers is an AI-powered Salesforce developer tool that's available as an easy-to-install Visual Studio Code (VS Code) extension. It includes Dev Agent (developer preview), an intelligent coding partner that provides information and, most importantly, can take action. Through agentic chat powered by MCP, Dev Agent can execute commands and perform complex workflows automatically, right from within VS Code.
 
 The Salesforce DX MCP server is pre-configured in Agentforce for Developers, so you can start using the DX MCP tools immediately after you install the extension in VS Code. 
 
