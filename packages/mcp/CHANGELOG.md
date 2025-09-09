@@ -1,3 +1,12 @@
+## [0.19.2-dev.0](https://github.com/salesforcecli/mcp/compare/0.19.1...0.19.2-dev.0) (2025-09-09)
+
+
+### Bug Fixes
+
+* use bundle libs for lightweight installs ([a9ad383](https://github.com/salesforcecli/mcp/commit/a9ad3835600dde16af6ff3964a312c90439fabb9))
+
+
+
 ## [0.19.1](https://github.com/salesforcecli/mcp/compare/0.19.0...0.19.1) (2025-09-04)
 
 
