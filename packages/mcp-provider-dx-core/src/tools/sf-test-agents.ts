@@ -15,7 +15,7 @@
  */
 
 import { z } from 'zod';
-import { AgentTester } from '@salesforce/agents';
+import { AgentTester } from '@salesforce/agents-bundle';
 import { Duration } from '@salesforce/kit';
 import { McpTool, McpToolConfig, ReleaseState, Services, Toolset } from '@salesforce/mcp-provider-api';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

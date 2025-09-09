@@ -1,4 +1,4 @@
-import { type Connection } from '@salesforce/core';
+import { type Connection } from '@salesforce/core-bundle';
 import { type OrgConfigInfo, type SanitizedOrgAuthorization } from './types.js';
 
 export interface Services {

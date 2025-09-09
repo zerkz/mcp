@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { Mutex } from '@salesforce/core';
+// import { Mutex } from '@salesforce/core-bundle';
+import pkg from '@salesforce/core-bundle';
+const { Mutex } = pkg;
+
 import { ToolInfo } from './types.js';
 
 type CacheContents = {

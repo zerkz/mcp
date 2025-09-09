@@ -15,10 +15,10 @@
  */
 
 import { z } from 'zod';
-import { AgentTester } from '@salesforce/agents';
-import { Connection, validateSalesforceId, scratchOrgResume, PollingClient, StatusResult } from '@salesforce/core';
+import { AgentTester } from '@salesforce/agents-bundle';
+import { Connection, scratchOrgResume, PollingClient, StatusResult } from '@salesforce/core-bundle';
 import { Duration } from '@salesforce/kit';
-import { MetadataApiDeploy } from '@salesforce/source-deploy-retrieve';
+import { MetadataApiDeploy } from '@salesforce/source-deploy-retrieve-bundle';
 import { McpTool, McpToolConfig, ReleaseState, Services, Toolset } from '@salesforce/mcp-provider-api';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { textResponse } from '../shared/utils.js';
@@ -108,9 +108,9 @@ Report on my org snapshot`,
       return textResponse('The jobId parameter is required.', true);
     }
 
-    if (!validateSalesforceId(input.jobId)) {
-      return textResponse('The jobId parameter is not a valid Salesforce id.', true);
-    }
+    // if (!validateSalesforceId(input.jobId)) {
+    //   return textResponse('The jobId parameter is not a valid Salesforce id.', true);
+    // }
 
     if (!input.usernameOrAlias)
       return textResponse(

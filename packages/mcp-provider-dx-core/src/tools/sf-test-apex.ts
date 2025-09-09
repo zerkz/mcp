@@ -15,8 +15,8 @@
  */
 
 import { z } from 'zod';
-import { TestLevel, TestResult, TestRunIdResult, TestService } from '@salesforce/apex-node';
-import { ApexTestResultOutcome } from '@salesforce/apex-node/lib/src/tests/types.js';
+import { TestLevel, TestResult, TestRunIdResult, TestService } from '@salesforce/apex-node-bundle';
+import { ApexTestResultOutcome } from '@salesforce/apex-node-bundle/lib/src/tests/types.js';
 import { Duration, ensureArray } from '@salesforce/kit';
 import { McpTool, McpToolConfig, ReleaseState, Services, Toolset } from '@salesforce/mcp-provider-api';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

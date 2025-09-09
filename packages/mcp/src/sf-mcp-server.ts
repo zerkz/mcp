@@ -24,7 +24,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { ServerOptions } from '@modelcontextprotocol/sdk/server/index.js';
 import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
-import { Logger } from '@salesforce/core';
+import { Logger } from '@salesforce/core-bundle';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { ZodRawShape } from 'zod';
 import { Telemetry } from './telemetry.js';

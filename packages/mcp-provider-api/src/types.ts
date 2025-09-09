@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { type ConfigInfo } from '@salesforce/core';
+import { type ConfigInfo } from '@salesforce/core-bundle';
 import { type Nullable } from '@salesforce/ts-types';
 
 export type OrgConfigInfo = {

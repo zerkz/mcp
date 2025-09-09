@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { AuthInfo, ConfigAggregator, ConfigInfo, OrgConfigProperties, type OrgAuthorization } from '@salesforce/core';
+import { AuthInfo, ConfigAggregator, ConfigInfo, OrgConfigProperties, type OrgAuthorization } from '@salesforce/core-bundle';
 import { type SanitizedOrgAuthorization } from '@salesforce/mcp-provider-api';
 import {
   getAllAllowedOrgs,

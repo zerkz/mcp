@@ -175,6 +175,7 @@ You can also use special values to control access to orgs:
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.error(`✅ Salesforce MCP Server v${this.config.version} running on stdio`);
+    console.error('BUNDLE BUILD TESTING')
   }
 
   protected async catch(error: Error): Promise<void> {

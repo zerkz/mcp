@@ -15,7 +15,7 @@
  */
 
 import { z } from 'zod';
-import { Org, StateAggregator, User } from '@salesforce/core';
+import { Org, StateAggregator, User } from '@salesforce/core-bundle';
 import { McpTool, McpToolConfig, ReleaseState, Services, Toolset } from '@salesforce/mcp-provider-api';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { directoryParam, usernameOrAliasParam } from '../shared/params.js';

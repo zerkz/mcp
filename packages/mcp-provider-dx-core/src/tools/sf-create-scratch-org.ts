@@ -17,7 +17,7 @@
 import { join } from 'node:path';
 import * as fs from 'node:fs';
 import { z } from 'zod';
-import { Org, scratchOrgCreate, ScratchOrgCreateOptions } from '@salesforce/core';
+import { Org, scratchOrgCreate, ScratchOrgCreateOptions } from '@salesforce/core-bundle';
 import { Duration } from '@salesforce/kit';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { McpTool, McpToolConfig, ReleaseState, Toolset } from '@salesforce/mcp-provider-api';

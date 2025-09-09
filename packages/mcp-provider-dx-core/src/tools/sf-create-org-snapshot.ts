@@ -15,7 +15,7 @@
  */
 
 import { z } from 'zod';
-import { Org } from '@salesforce/core';
+import { Org } from '@salesforce/core-bundle';
 import { McpTool, McpToolConfig, ReleaseState, Services, Toolset } from '@salesforce/mcp-provider-api';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { textResponse } from '../shared/utils.js';

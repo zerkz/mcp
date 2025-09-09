@@ -15,9 +15,9 @@
  */
 
 import { z } from 'zod';
-import { Connection, Org, SfError, SfProject } from '@salesforce/core';
-import { SourceTracking } from '@salesforce/source-tracking';
-import { ComponentSet, ComponentSetBuilder } from '@salesforce/source-deploy-retrieve';
+import { Connection, Org, SfError, SfProject } from '@salesforce/core-bundle';
+import { SourceTracking } from '@salesforce/source-tracking-bundle';
+import { ComponentSet, ComponentSetBuilder } from '@salesforce/source-deploy-retrieve-bundle';
 import { ensureString } from '@salesforce/ts-types';
 import { Duration } from '@salesforce/kit';
 import { McpTool, McpToolConfig, ReleaseState, Services, Toolset } from '@salesforce/mcp-provider-api';

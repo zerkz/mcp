@@ -15,8 +15,8 @@
  */
 
 import { z } from 'zod';
-import { Org } from '@salesforce/core';
-import { MetadataResolver } from '@salesforce/source-deploy-retrieve';
+import { Org } from '@salesforce/core-bundle';
+import { MetadataResolver } from '@salesforce/source-deploy-retrieve-bundle';
 import open from 'open';
 import { McpTool, McpToolConfig, ReleaseState, Toolset } from '@salesforce/mcp-provider-api';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';

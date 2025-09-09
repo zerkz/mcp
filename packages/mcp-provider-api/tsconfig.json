@@ -6,6 +6,7 @@
     "isolatedModules": true,
     "declaration": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "lib": [
       "ES2022"
     ],
