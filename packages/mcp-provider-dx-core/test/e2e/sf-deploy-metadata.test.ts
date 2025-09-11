@@ -16,15 +16,14 @@
 
 import path from 'node:path';
 import { expect } from 'chai';
-import { McpTestClient, TransportFactory } from '@salesforce/mcp-test-client';
+import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { deployMetadataParams } from '../../src/tools/sf-deploy-metadata.js';
+import { ensureString } from '@salesforce/ts-types';
 
 describe('sf-deploy-metadata', () => {
   const client = new McpTestClient({
-    name: 'sf-deploy-metadata-e2e-test',
-    version: '1.0.0',
     timeout: 600_000 // 10 minutes for deploy operations
   });
 
@@ -46,14 +45,9 @@ describe('sf-deploy-metadata', () => {
 
       orgUsername = [...testSession.orgs.keys()][0];
 
-      // Create stdio transport to start the MCP server
-      const transport = TransportFactory.createStdio({
-        command: process.env.SF_MCP_SERVER_BIN ?? 'sf-mcp-server',
-        args: ['--orgs', 'ALLOW_ALL_ORGS','--toolsets','all' ],
-        env: {
-          SF_USE_GENERIC_UNIX_KEYCHAIN: 'true'
-        }
-      });
+      const transport = DxMcpTransport({
+        orgUsername: ensureString(orgUsername)
+      })
 
       await client.connect(transport);
     } catch (error) {
@@ -98,6 +92,75 @@ describe('sf-deploy-metadata', () => {
     expect(deployResult.numberComponentsDeployed).to.equal(93)
   });
 
+  it('should deploy just 1 apex class and run a specific tests', async () => {
+    // Find an Apex class to deploy (PropertyController is in dreamhouse)
+    const apexClassPath = path.join(testSession.project.dir, 'force-app', 'main', 'default', 'classes', 'GeocodingService.cls');
+
+    const result = await client.callTool(deployMetadataSchema, {
+      name: 'sf-deploy-metadata',
+      params: {
+        sourceDir: [apexClassPath],
+        apexTests: ['GeocodingServiceTest'],
+        usernameOrAlias: orgUsername,
+        directory: testSession.project.dir
+      }
+    });
+
+    expect(result.isError).to.be.false
+    expect(result.content.length).to.equal(1);
+    expect(result.content[0].type).to.equal('text');
+    
+    const responseText = result.content[0].text;
+    expect(responseText).to.contain('Deploy result:');
+    
+    // Parse the deploy result JSON
+    // @ts-ignore
+    const deployMatch = responseText.match(/Deploy result: ({.*})/);
+    expect(deployMatch).to.not.be.null;
+    
+    const deployResult = JSON.parse(deployMatch![1]);
+    expect(deployResult.success).to.be.true;
+    expect(deployResult.done).to.be.true;
+    expect(deployResult.numberComponentsDeployed).to.equal(1);
+    expect(deployResult.runTestsEnabled).to.be.true;
+    expect(deployResult.numberTestsCompleted).to.equal(3);
+
+    // Assert that the 3 GeocodingServiceTest methods were run
+    const testSuccesses = deployResult.details.runTestResult.successes;
+    const expectedMethods = ['blankAddress', 'successResponse', 'errorResponse'];
+
+    expectedMethods.forEach(method => {
+      const testRun = testSuccesses.find((success: {
+        name: string,
+        methodName: string
+      }) => success.methodName === method && success.name === 'GeocodingServiceTest');
+      expect(testRun).to.not.be.undefined;
+    });
+  })
+
+  it('should fail if both apexTests and apexTestLevel params are set', async () => {
+    // Find an Apex class to deploy (PropertyController is in dreamhouse)
+    const apexClassPath = path.join(testSession.project.dir, 'force-app', 'main', 'default', 'classes', 'GeocodingService.cls');
+
+    const result = await client.callTool(deployMetadataSchema, {
+      name: 'sf-deploy-metadata',
+      params: {
+        sourceDir: [apexClassPath],
+        apexTestLevel: 'RunAllTestsInOrg',
+        apexTests: ['GeocodingServiceTest'],
+        usernameOrAlias: orgUsername,
+        directory: testSession.project.dir
+      }
+    });
+
+    expect(result.isError).to.be.true
+    expect(result.content.length).to.equal(1);
+    expect(result.content[0].type).to.equal('text');
+    
+    const responseText = result.content[0].text;
+    expect(responseText).to.contain('You can\'t specify both `apexTests` and `apexTestLevel` parameters.');
+  })
+
   it('should deploy just 1 apex class and run all tests in org', async () => {
     // Find an Apex class to deploy (PropertyController is in dreamhouse)
     const apexClassPath = path.join(testSession.project.dir, 'force-app', 'main', 'default', 'classes', 'PropertyController.cls');
@@ -105,7 +168,7 @@ describe('sf-deploy-metadata', () => {
     const result = await client.callTool(deployMetadataSchema, {
       name: 'sf-deploy-metadata',
       params: {
-        sourceDir: [apexClassPath], // Deploy the classes directory
+        sourceDir: [apexClassPath],
         apexTestLevel: 'RunAllTestsInOrg',
         usernameOrAlias: orgUsername,
         directory: testSession.project.dir

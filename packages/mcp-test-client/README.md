@@ -38,6 +38,7 @@ const client = new McpTestClient({
   version: "1.0.0"
 });
 
+// TODO: update example to use SDK's transport
 const transport = TransportFactory.createStdio({
   command: "node",
   args: ["path/to/your/mcp-server.js"]
@@ -100,10 +101,6 @@ Disconnects from the server and cleans up resources.
 
 Read-only property indicating connection status.
 
-### TransportFactory
-
-Factory class for creating transport instances.
-
 #### Static Methods
 
 ##### `createStdio(options: StdioTransportOptions): Transport`
@@ -123,37 +120,13 @@ Creates an SSE transport for HTTP-based communication.
 - `url` (string): Server URL
 - `headers` (Record<string, string>, optional): HTTP headers
 
-### Utility Functions
-
-#### `withMcpClient<T>(clientFactory: () => Promise<McpTestClient>, testFn: (client: McpTestClient, setup: TestSetup) => Promise<T>): Promise<T>`
-
-Higher-order function that ensures proper cleanup of MCP client resources.
-
-```typescript
-import { withMcpClient, TransportFactory } from "@salesforce/mcp-test-client";
-
-await withMcpClient(
-  async () => {
-    const client = new McpTestClient({ name: "test", version: "1.0.0" });
-    await client.connect(TransportFactory.createStdio({ command: "node", args: ["server.js"] }));
-    return client;
-  },
-  async (client, setup) => {
-    // Your test logic here
-    const result = await client.callTool(schema, request);
-    expect(result).toBeDefined();
-    
-    // setup.onCleanup() can be used for additional cleanup
-  }
-);
-```
-
 ## Examples
 
 ### Basic Tool Testing
 
 ```typescript
 import { describe, it, expect } from "vitest";
+// TODO: update example to use SDK's transport
 import { McpTestClient, TransportFactory } from "@salesforce/mcp-test-client";
 import { z } from "zod";
 

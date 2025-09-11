@@ -1,17 +1,15 @@
-import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import { 
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import {
   CallToolResult,
   LATEST_PROTOCOL_VERSION,
   SUPPORTED_PROTOCOL_VERSIONS,
   InitializeResultSchema,
   CallToolResultSchema,
-  JSONRPCMessage
-} from "@modelcontextprotocol/sdk/types.js";
-import { z } from "zod";
+  JSONRPCMessage,
+} from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
 
 export interface McpTestClientOptions {
-  name: string;
-  version: string;
   timeout?: number;
 }
 
@@ -23,17 +21,24 @@ export interface ToolSchema<TName extends string = string, TParams = unknown> {
 export class McpTestClient {
   private transport?: Transport;
   private requestId = 1;
-  private pendingRequests = new Map<number, { resolve: (value: unknown) => void; reject: (reason?: unknown) => void; timeout?: NodeJS.Timeout }>();
+  private pendingRequests = new Map<
+    number,
+    {
+      resolve: (value: unknown) => void;
+      reject: (reason?: unknown) => void;
+      timeout?: NodeJS.Timeout;
+    }
+  >();
   private isConnected = false;
   private defaultTimeout: number;
 
-  constructor(private options: McpTestClientOptions) {
+  constructor(options: McpTestClientOptions) {
     this.defaultTimeout = options.timeout ?? 30000;
   }
 
   async connect(transport: Transport): Promise<void> {
     if (this.isConnected) {
-      throw new Error("Client is already connected");
+      throw new Error('Client is already connected');
     }
 
     this.transport = transport;
@@ -53,25 +58,27 @@ export class McpTestClient {
     await transport.start?.();
 
     const initResult = await this.sendRequest({
-      method: "initialize",
+      method: 'initialize',
       params: {
         protocolVersion: LATEST_PROTOCOL_VERSION,
         capabilities: {},
         clientInfo: {
-          name: this.options.name,
-          version: this.options.version
-        }
-      }
+          name: '@salesforce/mcp-test-client',
+          version: '0.0.1',
+        },
+      },
     });
 
     const result = InitializeResultSchema.parse(initResult);
 
     if (!SUPPORTED_PROTOCOL_VERSIONS.includes(result.protocolVersion)) {
-      throw new Error(`Unsupported protocol version: ${result.protocolVersion}`);
+      throw new Error(
+        `Unsupported protocol version: ${result.protocolVersion}`,
+      );
     }
 
     await this.sendNotification({
-      method: "notifications/initialized"
+      method: 'notifications/initialized',
     });
 
     this.isConnected = true;
@@ -86,7 +93,7 @@ export class McpTestClient {
       if (request.timeout) {
         clearTimeout(request.timeout);
       }
-      request.reject(new Error("Client disconnected"));
+      request.reject(new Error('Client disconnected'));
     }
     this.pendingRequests.clear();
 
@@ -98,38 +105,46 @@ export class McpTestClient {
   async callTool<TName extends string, TParams>(
     toolSchema: ToolSchema<TName, TParams>,
     request: { name: TName; params: TParams },
-    timeout?: number
+    timeout?: number,
   ): Promise<CallToolResult> {
     if (!this.isConnected || !this.transport) {
-      throw new Error("Client is not connected");
+      throw new Error('Client is not connected');
     }
 
-    const parsedRequest = z.object({
-      name: toolSchema.name,
-      params: toolSchema.params
-    }).parse(request);
+    const parsedRequest = z
+      .object({
+        name: toolSchema.name,
+        params: toolSchema.params,
+      })
+      .parse(request);
 
-    const result = await this.sendRequest({
-      method: "tools/call",
-      params: {
-        name: parsedRequest.name,
-        arguments: parsedRequest.params
-      }
-    }, timeout);
+    const result = await this.sendRequest(
+      {
+        method: 'tools/call',
+        params: {
+          name: parsedRequest.name,
+          arguments: parsedRequest.params,
+        },
+      },
+      timeout,
+    );
 
     return CallToolResultSchema.parse(result);
   }
 
-  private async sendRequest(request: unknown, timeout?: number): Promise<unknown> {
+  private async sendRequest(
+    request: unknown,
+    timeout?: number,
+  ): Promise<unknown> {
     if (!this.transport) {
-      throw new Error("No transport available");
+      throw new Error('No transport available');
     }
 
     const id = this.requestId++;
     const message = {
-      jsonrpc: "2.0" as const,
+      jsonrpc: '2.0' as const,
       id,
-      ...(request as Record<string, unknown>)
+      ...(request as Record<string, unknown>),
     };
 
     return new Promise((resolve, reject) => {
@@ -148,7 +163,7 @@ export class McpTestClient {
           clearTimeout(timeoutHandle);
           reject(error);
         },
-        timeout: timeoutHandle
+        timeout: timeoutHandle,
       });
 
       this.transport!.send(message as JSONRPCMessage);
@@ -157,12 +172,12 @@ export class McpTestClient {
 
   private async sendNotification(notification: unknown): Promise<void> {
     if (!this.transport) {
-      throw new Error("No transport available");
+      throw new Error('No transport available');
     }
 
     const message = {
-      jsonrpc: "2.0" as const,
-      ...(notification as Record<string, unknown>)
+      jsonrpc: '2.0' as const,
+      ...(notification as Record<string, unknown>),
     };
 
     this.transport.send(message as JSONRPCMessage);
@@ -174,10 +189,12 @@ export class McpTestClient {
       const pending = this.pendingRequests.get(msg.id);
       if (pending) {
         this.pendingRequests.delete(msg.id);
-        
+
         if (msg.error) {
           const error = msg.error as Record<string, unknown>;
-          pending.reject(new Error(error.message as string || "Unknown error"));
+          pending.reject(
+            new Error((error.message as string) || 'Unknown error'),
+          );
         } else {
           pending.resolve(msg.result);
         }
@@ -201,7 +218,7 @@ export class McpTestClient {
       if (request.timeout) {
         clearTimeout(request.timeout);
       }
-      request.reject(new Error("Connection closed"));
+      request.reject(new Error('Connection closed'));
     }
     this.pendingRequests.clear();
   }
@@ -212,6 +229,6 @@ export class McpTestClient {
 }
 
 // Re-export everything for convenience
-export * from "./transports.js";
-export * from "./utils.js"; 
-export * from "./errors.js";
+export * from './transport.js';
+export * from './utils.js';
+export * from './errors.js';

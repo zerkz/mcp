@@ -16,15 +16,14 @@
 
 import path from 'node:path';
 import { expect } from 'chai';
-import { McpTestClient, TransportFactory } from '@salesforce/mcp-test-client';
+import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { queryOrgParamsSchema } from '../../src/tools/sf-query-org.js';
+import { ensureString } from '@salesforce/ts-types';
 
 describe('sf-query-org', () => {
   const client = new McpTestClient({
-    name: 'sf-query-org-e2e-test',
-    version: '1.0.0',
     timeout: 120_000 // 2 minutes for query operations
   });
 
@@ -59,21 +58,12 @@ describe('sf-query-org', () => {
         ensureExitCode: 0
       })
 
+      testSession.orgs.get('')?.orgId
       orgUsername = [...testSession.orgs.keys()][0];
 
-      // Create stdio transport to start the MCP server
-      const transport = TransportFactory.createStdio({
-        command: process.env.SF_MCP_SERVER_BIN ?? 'sf-mcp-server',
-        args: ['--orgs', 'ALLOW_ALL_ORGS','--toolsets','all' ],
-        // args: [path.join(process.cwd(), '..', '..', '..', 'mcp', 'bin', 'run.js'), '-o', orgUsername, '--no-telemetry'],
-        // this is needed because testkit sets it when transferring the hub auth and creating a scratch.
-        // Without it you get a keychain error/silent failure because the server will look for orgUsername
-        // in the OS keychain but testkit modifies the home dir in the process so all auth is in the test dir.
-        // TODO: this should be a default (and customizable)
-        env: {
-          SF_USE_GENERIC_UNIX_KEYCHAIN: 'true'
-        }
-      });
+      const transport = DxMcpTransport({
+        orgUsername: ensureString(orgUsername)
+      })
 
       await client.connect(transport);
     } catch (error) {
@@ -139,14 +129,13 @@ describe('sf-query-org', () => {
     const result = await client.callTool(queryOrgSchema, {
       name: 'sf-query-org',
       params: {
-        query: "SELECT Status FROM ApexClass WHERE Name='FileUtilities'",
+        query: "SELECT SymbolTable from ApexClass where name='FileUtilities'",
         usernameOrAlias: orgUsername,
         directory: testSession.project.dir,
         useToolingApi: true
       }
     });
 
-    console.log(JSON.stringify(result,null,2))
     expect(result.isError).to.equal(false);
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
@@ -167,11 +156,29 @@ describe('sf-query-org', () => {
     
     // Verify FileUtilities ApexClass record
     const fileUtilitiesClass = queryResult.records[0];
-    expect(fileUtilitiesClass).to.have.property('Status');
-    expect(fileUtilitiesClass.Status).to.equal('Active');
-  });
+    expect(fileUtilitiesClass).to.have.nested.property('attributes.type', 'ApexClass');
+    expect(fileUtilitiesClass).to.have.nested.property('attributes.url').that.is.a('string');
+    expect(fileUtilitiesClass).to.have.nested.property('SymbolTable.id', 'FileUtilities');
+    expect(fileUtilitiesClass).to.have.nested.property('SymbolTable.name', 'FileUtilities');
+    expect(fileUtilitiesClass).to.have.nested.property('SymbolTable.methods').that.is.an('array').with.lengthOf(1);
+    
+    const method = fileUtilitiesClass.SymbolTable.methods[0];
+    expect(method).to.have.property('name', 'createFile');
+    expect(method).to.have.property('returnType', 'String');
+    expect(method.parameters).to.be.an('array').with.lengthOf(3);
+    expect(method.parameters[0]).to.deep.include({ name: 'base64data', type: 'String' });
+    expect(method.parameters[1]).to.deep.include({ name: 'filename', type: 'String' });
+    expect(method.parameters[2]).to.deep.include({ name: 'recordId', type: 'String' });
+    
+    expect(fileUtilitiesClass.SymbolTable.variables).to.be.an('array').with.lengthOf(5);
+    expect(fileUtilitiesClass.SymbolTable.variables[0]).to.deep.include({ name: 'base64data', type: 'String' });
+    expect(fileUtilitiesClass.SymbolTable.variables[1]).to.deep.include({ name: 'filename', type: 'String' });
+    expect(fileUtilitiesClass.SymbolTable.variables[2]).to.deep.include({ name: 'recordId', type: 'String' });
+    expect(fileUtilitiesClass.SymbolTable.variables[3]).to.deep.include({ name: 'contentVersion', type: 'ContentVersion' });
+    expect(fileUtilitiesClass.SymbolTable.variables[4]).to.deep.include({ name: 'contentDocumentLink', type: 'ContentDocumentLink' });
+});
 
-  it.skip('should handle invalid SOQL query gracefully', async () => {
+  it('should handle SOQL query errors', async () => {
     const result = await client.callTool(queryOrgSchema, {
       name: 'sf-query-org',
       params: {
@@ -182,15 +189,15 @@ describe('sf-query-org', () => {
       }
     });
 
+    expect(result.isError).to.be.true;
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
     
     const responseText = result.content[0].text;
     expect(responseText).to.contain('Failed to query org:');
-    expect(result.isError).to.be.true;
   });
 
-  it.skip('should handle missing usernameOrAlias parameter', async () => {
+  it('should handle missing usernameOrAlias parameter', async () => {
     const result = await client.callTool(queryOrgSchema, {
       name: 'sf-query-org',
       params: {
@@ -200,12 +207,11 @@ describe('sf-query-org', () => {
       }
     });
 
+    expect(result.isError).to.be.true;
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
     
     const responseText = result.content[0].text;
-    expect(responseText).to.contain('The usernameOrAlias parameter is required');
-    expect(responseText).to.contain('#sf-get-username tool');
-    expect(result.isError).to.be.true;
+    expect(responseText).to.equal('The usernameOrAlias parameter is required, if the user did not specify one use the #sf-get-username tool');
   });
 });

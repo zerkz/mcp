@@ -33,6 +33,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "prettier": "^3.6.2",
     "@eslint/js": "^9.32.0",
     "@types/node": "^22.16.5",
     "eslint": "^9.32.0",
@@ -47,8 +48,12 @@
     "LICENSE.txt",
     "README.md"
   ],
+  "prettier": {
+    "singleQuote": true
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "format": "prettier --write \"src/**/*.ts\"",
     "clean": "rimraf dist",
     "clean-all": "yarn clean && rimraf node_modules",
     "lint": "eslint src/**/*.ts",

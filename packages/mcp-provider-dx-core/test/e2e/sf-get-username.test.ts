@@ -16,16 +16,14 @@
 
 import path from 'node:path';
 import { expect } from 'chai';
-import { McpTestClient, TransportFactory } from '@salesforce/mcp-test-client';
+import { McpTestClient,DxMcpTransport } from '@salesforce/mcp-test-client';
 import { TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { getUsernameParamsSchema } from '../../src/tools/sf-get-username.js';
+import { ensureString } from '@salesforce/ts-types';
 
 describe('sf-get-username', () => {
-  // TODO: client name/version should be hardcoded in class
   const client = new McpTestClient({
-    name: 'sf-get-username-e2e-test',
-    version: '1.0.0',
     timeout: 600_000,
   });
 
@@ -50,12 +48,9 @@ describe('sf-get-username', () => {
 
     orgUsername = [...testSession.orgs.keys()][0];
 
-    // Create stdio transport to start the MCP server
-    const transport = TransportFactory.createStdio({
-      command: process.env.SF_MCP_SERVER_BIN ?? 'sf-mcp-server',
-      args: ['--orgs', 'ALLOW_ALL_ORGS','--toolsets','all' ],
-      // args: [path.join(process.cwd(), '..', '..', '..', 'mcp', 'bin', 'run.js'), '-o', orgUsername, '--no-telemetry'],
-    });
+    const transport = DxMcpTransport({
+      orgUsername: ensureString(orgUsername)
+    })
 
     await client.connect(transport);
   });

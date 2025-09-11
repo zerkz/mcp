@@ -1,4 +1,4 @@
-import { McpTestClient } from "./index.js";
+import { McpTestClient } from './index.js';
 
 export interface TestSetupOptions {
   client: McpTestClient;
@@ -34,21 +34,9 @@ export class TestSetup {
     }
 
     if (errors.length > 0) {
-      throw new Error(`Cleanup errors: ${errors.map(e => e.message).join(", ")}`);
+      throw new Error(
+        `Cleanup errors: ${errors.map((e) => e.message).join(', ')}`,
+      );
     }
-  }
-}
-
-export async function withMcpClient<T>(
-  clientFactory: () => Promise<McpTestClient>,
-  testFn: (client: McpTestClient, setup: TestSetup) => Promise<T>
-): Promise<T> {
-  const client = await clientFactory();
-  const setup = new TestSetup(client);
-
-  try {
-    return await testFn(client, setup);
-  } finally {
-    await setup.cleanup();
   }
 }
