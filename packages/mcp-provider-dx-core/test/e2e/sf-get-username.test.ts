@@ -16,7 +16,7 @@
 
 import path from 'node:path';
 import { expect } from 'chai';
-import { McpTestClient,DxMcpTransport } from '@salesforce/mcp-test-client';
+import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { getUsernameParamsSchema } from '../../src/tools/sf-get-username.js';
@@ -49,8 +49,8 @@ describe('sf-get-username', () => {
     orgUsername = [...testSession.orgs.keys()][0];
 
     const transport = DxMcpTransport({
-      orgUsername: ensureString(orgUsername)
-    })
+      orgUsername: ensureString(orgUsername),
+    });
 
     await client.connect(transport);
   });
@@ -75,22 +75,24 @@ describe('sf-get-username', () => {
 
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
-    
+
     const responseText = result.content[0].text;
     expect(responseText).to.contain('ALWAYS notify the user the following 3 (maybe 4) pieces of information:');
-    expect(responseText).to.contain('UNLESS THE USER SPECIFIES OTHERWISE, use this username for the "usernameOrAlias" parameter in future Tool calls.');
-    
+    expect(responseText).to.contain(
+      'UNLESS THE USER SPECIFIES OTHERWISE, use this username for the "usernameOrAlias" parameter in future Tool calls.'
+    );
+
     // Extract and parse the config JSON from the response
     // @ts-ignore
     const configMatch = responseText.match(/Full config: ({[\s\S]*?})/);
     expect(configMatch).to.not.be.null;
-    
+
     const actualConfig = JSON.parse(configMatch![1]);
     const expectedConfig = {
-      "key": "target-org",
-      "location": "Local",
-      "value": orgUsername,
-      "path": path.join(testSession.project.dir, '.sf', 'config.json')
+      key: 'target-org',
+      location: 'Local',
+      value: orgUsername,
+      path: path.join(testSession.project.dir, '.sf', 'config.json'),
     };
     expect(actualConfig).to.deep.equal(expectedConfig);
   });
@@ -107,22 +109,24 @@ describe('sf-get-username', () => {
 
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
-    
+
     const responseText = result.content[0].text;
     expect(responseText).to.contain('ALWAYS notify the user the following 3 (maybe 4) pieces of information:');
-    expect(responseText).to.contain('UNLESS THE USER SPECIFIES OTHERWISE, use this username for the "usernameOrAlias" parameter in future Tool calls.');
-    
+    expect(responseText).to.contain(
+      'UNLESS THE USER SPECIFIES OTHERWISE, use this username for the "usernameOrAlias" parameter in future Tool calls.'
+    );
+
     // Extract and parse the config JSON from the response
     // @ts-ignore
     const configMatch = responseText.match(/Full config: ({[\s\S]*?})/);
     expect(configMatch).to.not.be.null;
-    
+
     const actualConfig = JSON.parse(configMatch![1]);
     const expectedConfig = {
-      "key": "target-dev-hub",
-      "location": "Local", 
-      "value": testSession.hubOrg.username,
-      "path": path.join(testSession.project.dir, '.sf', 'config.json')
+      key: 'target-dev-hub',
+      location: 'Local',
+      value: testSession.hubOrg.username,
+      path: path.join(testSession.project.dir, '.sf', 'config.json'),
     };
     expect(actualConfig).to.deep.equal(expectedConfig);
   });

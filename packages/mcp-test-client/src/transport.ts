@@ -4,6 +4,7 @@ import {
 
 type DxMcpTransportOptions = {
   command?: string;
+  args?: string[];
   orgUsername?: string;
 };
 
@@ -17,7 +18,7 @@ export function DxMcpTransport(
 
   return new StdioClientTransport({
     command,
-    args: ['--orgs', options.orgUsername ?? 'DEFAULT_TARGET_ORG', '--no-telemetry'],
+    args: options.args ?? ['--orgs', options.orgUsername ?? 'DEFAULT_TARGET_ORG', '--no-telemetry'],
     // this is needed because testkit sets it when transferring the hub auth and creating a scratch.
     // Without it you get a keychain error/silent failure because the server will look for orgUsername
     // in the OS keychain but testkit modifies the home dir in the process so all auth is in the test dir.

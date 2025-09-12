@@ -25,7 +25,7 @@ import { ensureString } from '@salesforce/ts-types';
 
 describe('sf-retrieve-metadata', () => {
   const client = new McpTestClient({
-    timeout: 600_000 // 10 minutes for retrieve operations
+    timeout: 600_000, // 10 minutes for retrieve operations
   });
 
   let testSession: TestSession;
@@ -33,7 +33,7 @@ describe('sf-retrieve-metadata', () => {
 
   const retrieveMetadataSchema = {
     name: z.literal('sf-retrieve-metadata'),
-    params: retrieveMetadataParams
+    params: retrieveMetadataParams,
   };
 
   before(async () => {
@@ -46,13 +46,13 @@ describe('sf-retrieve-metadata', () => {
 
       execCmd('project deploy start', {
         cli: 'sf',
-        ensureExitCode: 0
+        ensureExitCode: 0,
       });
 
       orgUsername = [...testSession.orgs.keys()][0];
 
       const transport = DxMcpTransport({
-        orgUsername: ensureString(orgUsername)
+        orgUsername: ensureString(orgUsername),
       });
 
       await client.connect(transport);
@@ -78,16 +78,16 @@ describe('sf-retrieve-metadata', () => {
         sourceDir: ['force-app/main/default/classes/GeocodingService.cls'],
         manifest: '/some/path/package.xml',
         usernameOrAlias: orgUsername,
-        directory: testSession.project.dir
-      }
+        directory: testSession.project.dir,
+      },
     });
 
     expect(result.isError).to.be.true;
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
-    
+
     const responseText = result.content[0].text;
-    expect(responseText).to.contain('You can\'t specify both `sourceDir` and `manifest` parameters.');
+    expect(responseText).to.contain("You can't specify both `sourceDir` and `manifest` parameters.");
   });
 
   it('should retrieve just 1 apex class', async () => {
@@ -98,29 +98,31 @@ describe('sf-retrieve-metadata', () => {
       params: {
         sourceDir: [apexClassPath],
         usernameOrAlias: orgUsername,
-        directory: testSession.project.dir
-      }
+        directory: testSession.project.dir,
+      },
     });
 
     expect(result.isError).to.equal(false);
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
-    
+
     const responseText = result.content[0].text;
     expect(responseText).to.contain('Retrieve result:');
-    
+
     // Parse the retrieve result JSON
     // @ts-ignore
     const retrieveMatch = responseText.match(/Retrieve result: ({.*})/);
     expect(retrieveMatch).to.not.be.null;
-    
+
     const retrieveResult = JSON.parse(retrieveMatch![1]);
     expect(retrieveResult.success).to.be.true;
     expect(retrieveResult.done).to.be.true;
     expect(retrieveResult.fileProperties.length).to.equal(2); // Updated to match the response
 
     // Check the properties of the retrieved ApexClass
-    const apexClass = retrieveResult.fileProperties.find((fp: {type: string, fullName: string}) => fp.type === 'ApexClass');
+    const apexClass = retrieveResult.fileProperties.find(
+      (fp: { type: string; fullName: string }) => fp.type === 'ApexClass'
+    );
     expect(apexClass).to.not.be.undefined;
     expect(apexClass.fullName).to.equal('GeocodingService');
     expect(apexClass.fileName).to.equal('unpackaged/classes/GeocodingService.cls');
@@ -136,7 +138,7 @@ describe('sf-retrieve-metadata', () => {
     </types>
     <version>61.0</version>
 </Package>`;
-    
+
     const manifestPath = path.join(testSession.project.dir, 'package.xml');
     fs.writeFileSync(manifestPath, packageXmlContent);
 
@@ -145,31 +147,31 @@ describe('sf-retrieve-metadata', () => {
       params: {
         manifest: manifestPath,
         usernameOrAlias: orgUsername,
-        directory: testSession.project.dir
-      }
+        directory: testSession.project.dir,
+      },
     });
 
     expect(result.isError).to.equal(false);
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
-    
+
     const responseText = result.content[0].text;
     expect(responseText).to.contain('Retrieve result:');
-    
+
     // Parse the retrieve result JSON
     // @ts-ignore
     const retrieveMatch = responseText.match(/Retrieve result: ({.*})/);
     expect(retrieveMatch).to.not.be.null;
-    
+
     const retrieveResult = JSON.parse(retrieveMatch![1]);
     expect(retrieveResult.success).to.be.true;
     expect(retrieveResult.done).to.be.true;
     // Should retrieve all apex classes (there are multiple in dreamhouse) + package.xml
     expect(retrieveResult.fileProperties.length).to.equal(10);
-    
+
     // Verify we got 9 Apex classes and 1 package.xml
-    const apexClasses = retrieveResult.fileProperties.filter((fp: {type: string}) => fp.type === 'ApexClass');
-    const packageXml = retrieveResult.fileProperties.filter((fp: {type: string}) => fp.type === 'Package');
+    const apexClasses = retrieveResult.fileProperties.filter((fp: { type: string }) => fp.type === 'ApexClass');
+    const packageXml = retrieveResult.fileProperties.filter((fp: { type: string }) => fp.type === 'Package');
     expect(apexClasses.length).to.equal(9);
     expect(packageXml.length).to.equal(1);
   });

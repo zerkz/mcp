@@ -24,7 +24,7 @@ import { ensureString } from '@salesforce/ts-types';
 
 describe('sf-deploy-metadata', () => {
   const client = new McpTestClient({
-    timeout: 600_000 // 10 minutes for deploy operations
+    timeout: 600_000, // 10 minutes for deploy operations
   });
 
   let testSession: TestSession;
@@ -32,7 +32,7 @@ describe('sf-deploy-metadata', () => {
 
   const deployMetadataSchema = {
     name: z.literal('sf-deploy-metadata'),
-    params: deployMetadataParams
+    params: deployMetadataParams,
   };
 
   before(async () => {
@@ -46,8 +46,8 @@ describe('sf-deploy-metadata', () => {
       orgUsername = [...testSession.orgs.keys()][0];
 
       const transport = DxMcpTransport({
-        orgUsername: ensureString(orgUsername)
-      })
+        orgUsername: ensureString(orgUsername),
+      });
 
       await client.connect(transport);
     } catch (error) {
@@ -70,31 +70,38 @@ describe('sf-deploy-metadata', () => {
       name: 'sf-deploy-metadata',
       params: {
         usernameOrAlias: orgUsername,
-        directory: testSession.project.dir
-      }
+        directory: testSession.project.dir,
+      },
     });
 
     expect(result.isError).to.equal(false);
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
-    
+
     const responseText = result.content[0].text;
     expect(responseText).to.contain('Deploy result:');
-    
+
     // Parse the deploy result JSON
     // @ts-ignore
     const deployMatch = responseText.match(/Deploy result: ({.*})/);
     expect(deployMatch).to.not.be.null;
-    
+
     const deployResult = JSON.parse(deployMatch![1]);
     expect(deployResult.success).to.be.true;
     expect(deployResult.done).to.be.true;
-    expect(deployResult.numberComponentsDeployed).to.equal(93)
+    expect(deployResult.numberComponentsDeployed).to.equal(93);
   });
 
   it('should deploy just 1 apex class and run a specific tests', async () => {
     // Find an Apex class to deploy (PropertyController is in dreamhouse)
-    const apexClassPath = path.join(testSession.project.dir, 'force-app', 'main', 'default', 'classes', 'GeocodingService.cls');
+    const apexClassPath = path.join(
+      testSession.project.dir,
+      'force-app',
+      'main',
+      'default',
+      'classes',
+      'GeocodingService.cls'
+    );
 
     const result = await client.callTool(deployMetadataSchema, {
       name: 'sf-deploy-metadata',
@@ -102,22 +109,22 @@ describe('sf-deploy-metadata', () => {
         sourceDir: [apexClassPath],
         apexTests: ['GeocodingServiceTest'],
         usernameOrAlias: orgUsername,
-        directory: testSession.project.dir
-      }
+        directory: testSession.project.dir,
+      },
     });
 
-    expect(result.isError).to.be.false
+    expect(result.isError).to.be.false;
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
-    
+
     const responseText = result.content[0].text;
     expect(responseText).to.contain('Deploy result:');
-    
+
     // Parse the deploy result JSON
     // @ts-ignore
     const deployMatch = responseText.match(/Deploy result: ({.*})/);
     expect(deployMatch).to.not.be.null;
-    
+
     const deployResult = JSON.parse(deployMatch![1]);
     expect(deployResult.success).to.be.true;
     expect(deployResult.done).to.be.true;
@@ -129,18 +136,25 @@ describe('sf-deploy-metadata', () => {
     const testSuccesses = deployResult.details.runTestResult.successes;
     const expectedMethods = ['blankAddress', 'successResponse', 'errorResponse'];
 
-    expectedMethods.forEach(method => {
-      const testRun = testSuccesses.find((success: {
-        name: string,
-        methodName: string
-      }) => success.methodName === method && success.name === 'GeocodingServiceTest');
+    expectedMethods.forEach((method) => {
+      const testRun = testSuccesses.find(
+        (success: { name: string; methodName: string }) =>
+          success.methodName === method && success.name === 'GeocodingServiceTest'
+      );
       expect(testRun).to.not.be.undefined;
     });
-  })
+  });
 
   it('should fail if both apexTests and apexTestLevel params are set', async () => {
     // Find an Apex class to deploy (PropertyController is in dreamhouse)
-    const apexClassPath = path.join(testSession.project.dir, 'force-app', 'main', 'default', 'classes', 'GeocodingService.cls');
+    const apexClassPath = path.join(
+      testSession.project.dir,
+      'force-app',
+      'main',
+      'default',
+      'classes',
+      'GeocodingService.cls'
+    );
 
     const result = await client.callTool(deployMetadataSchema, {
       name: 'sf-deploy-metadata',
@@ -149,21 +163,28 @@ describe('sf-deploy-metadata', () => {
         apexTestLevel: 'RunAllTestsInOrg',
         apexTests: ['GeocodingServiceTest'],
         usernameOrAlias: orgUsername,
-        directory: testSession.project.dir
-      }
+        directory: testSession.project.dir,
+      },
     });
 
-    expect(result.isError).to.be.true
+    expect(result.isError).to.be.true;
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
-    
+
     const responseText = result.content[0].text;
-    expect(responseText).to.contain('You can\'t specify both `apexTests` and `apexTestLevel` parameters.');
-  })
+    expect(responseText).to.contain("You can't specify both `apexTests` and `apexTestLevel` parameters.");
+  });
 
   it('should deploy just 1 apex class and run all tests in org', async () => {
     // Find an Apex class to deploy (PropertyController is in dreamhouse)
-    const apexClassPath = path.join(testSession.project.dir, 'force-app', 'main', 'default', 'classes', 'PropertyController.cls');
+    const apexClassPath = path.join(
+      testSession.project.dir,
+      'force-app',
+      'main',
+      'default',
+      'classes',
+      'PropertyController.cls'
+    );
 
     const result = await client.callTool(deployMetadataSchema, {
       name: 'sf-deploy-metadata',
@@ -171,21 +192,21 @@ describe('sf-deploy-metadata', () => {
         sourceDir: [apexClassPath],
         apexTestLevel: 'RunAllTestsInOrg',
         usernameOrAlias: orgUsername,
-        directory: testSession.project.dir
-      }
+        directory: testSession.project.dir,
+      },
     });
 
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
-    
+
     const responseText = result.content[0].text;
     expect(responseText).to.contain('Deploy result:');
-    
+
     // Parse the deploy result JSON
     // @ts-ignore
     const deployMatch = responseText.match(/Deploy result: ({.*})/);
     expect(deployMatch).to.not.be.null;
-    
+
     const deployResult = JSON.parse(deployMatch![1]);
     expect(deployResult.success).to.be.true;
     expect(deployResult.done).to.be.true;
