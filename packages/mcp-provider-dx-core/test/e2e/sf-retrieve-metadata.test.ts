@@ -20,8 +20,8 @@ import { expect } from 'chai';
 import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
-import { retrieveMetadataParams } from '../../src/tools/sf-retrieve-metadata.js';
 import { ensureString } from '@salesforce/ts-types';
+import { retrieveMetadataParams } from '../../src/tools/sf-retrieve-metadata.js';
 
 describe('sf-retrieve-metadata', () => {
   const client = new McpTestClient({

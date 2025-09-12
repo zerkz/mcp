@@ -19,8 +19,8 @@ import { expect } from 'chai';
 import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
-import { deployMetadataParams } from '../../src/tools/sf-deploy-metadata.js';
 import { ensureString } from '@salesforce/ts-types';
+import { deployMetadataParams } from '../../src/tools/sf-deploy-metadata.js';
 
 describe('sf-deploy-metadata', () => {
   const client = new McpTestClient({

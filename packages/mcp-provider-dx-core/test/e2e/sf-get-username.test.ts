@@ -19,8 +19,8 @@ import { expect } from 'chai';
 import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
-import { getUsernameParamsSchema } from '../../src/tools/sf-get-username.js';
 import { ensureString } from '@salesforce/ts-types';
+import { getUsernameParamsSchema } from '../../src/tools/sf-get-username.js';
 
 describe('sf-get-username', () => {
   const client = new McpTestClient({

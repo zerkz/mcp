@@ -19,8 +19,8 @@ import { expect } from 'chai';
 import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
-import { queryOrgParamsSchema } from '../../src/tools/sf-query-org.js';
 import { ensureString } from '@salesforce/ts-types';
+import { queryOrgParamsSchema } from '../../src/tools/sf-query-org.js';
 
 describe('sf-query-org', () => {
   const client = new McpTestClient({
@@ -43,7 +43,7 @@ describe('sf-query-org', () => {
         devhubAuthStrategy: 'AUTO',
       });
 
-      execCmd(`project deploy start`, {
+      execCmd('project deploy start', {
         cli: 'sf',
         ensureExitCode: 0,
       });
