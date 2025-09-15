@@ -1,18 +1,31 @@
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs";
-import {CodeAnalyzer, OutputFormat, RuleSelection, RunResults, Workspace} from "@salesforce/code-analyzer-core";
+import {
+    CodeAnalyzer,
+    OutputFormat,
+    RuleSelection,
+    RunResults,
+    SeverityLevel,
+    Workspace
+} from "@salesforce/code-analyzer-core";
+import type { ViolationCounts } from "@salesforce/code-analyzer-core/output-formats";
 import {EnginePlugin} from "@salesforce/code-analyzer-engine-api";
 import {getErrorMessage} from "../utils.js";
 import {getMessage} from "../messages.js";
-import { CodeAnalyzerConfigFactory } from "../factories/CodeAnalyzerConfigFactory.js";
-import { EnginePluginsFactory } from "../factories/EnginePluginsFactory.js";
-import { ErrorCapturer } from "../listeners/ErrorCapturer.js";
+import {CodeAnalyzerConfigFactory} from "../factories/CodeAnalyzerConfigFactory.js";
+import {EnginePluginsFactory} from "../factories/EnginePluginsFactory.js";
+import {ErrorCapturer} from "../listeners/ErrorCapturer.js";
+import {TelemetryService} from "@salesforce/mcp-provider-api";
+import {TelemetryListenerFactory} from "../factories/TelemetryListenerFactory.js";
+import {TelemetryListener} from "../listeners/TelemetryListener.js";
+import * as Constants from "../constants.js";
 
 
 type RunAnalyzerActionOptions = {
     configFactory: CodeAnalyzerConfigFactory
     enginePluginsFactory: EnginePluginsFactory
+    telemetryService?: TelemetryService
 }
 
 // NOTE: THIS MUST ALIGN WITH THE ZOD SCHEMA DEFINED IN `sf-code-analyzer-run.ts`.
@@ -24,6 +37,7 @@ export type RunInput = {
 export type RunOutput = {
     status: string
     resultsFile?: string
+    summary?: ViolationCounts
 }
 
 export interface RunAnalyzerAction {
@@ -33,10 +47,12 @@ export interface RunAnalyzerAction {
 export class RunAnalyzerActionImpl implements RunAnalyzerAction {
     private readonly configFactory: CodeAnalyzerConfigFactory;
     private readonly enginePluginsFactory: EnginePluginsFactory;
+    private readonly telemetryService?: TelemetryService
 
     public constructor(options: RunAnalyzerActionOptions) {
         this.configFactory = options.configFactory;
         this.enginePluginsFactory = options.enginePluginsFactory;
+        this.telemetryService = options.telemetryService;
     }
 
     public async exec(input: RunInput): Promise<RunOutput> {
@@ -50,11 +66,13 @@ export class RunAnalyzerActionImpl implements RunAnalyzerAction {
         }
 
         const errorCapturer: ErrorCapturer = new ErrorCapturer();
-
         errorCapturer.listen(analyzer);
 
+        const telemetryListener: TelemetryListener = new TelemetryListenerFactory().create(this.telemetryService);
+        telemetryListener.listen(analyzer)
+
+        const enginePlugins: EnginePlugin[] = this.enginePluginsFactory.create();
         try {
-            const enginePlugins: EnginePlugin[] = this.enginePluginsFactory.create();
             for (const enginePlugin of enginePlugins) {
                 await analyzer.addEnginePlugin(enginePlugin);
             }
@@ -73,6 +91,7 @@ export class RunAnalyzerActionImpl implements RunAnalyzerAction {
         const ruleSelection: RuleSelection = await analyzer.selectRules(['recommended'], {workspace});
 
         const results: RunResults = await analyzer.run(ruleSelection, {workspace});
+        this.emitEngineTelemetry(ruleSelection, results, enginePlugins.flatMap(p => p.getAvailableEngineNames()));
 
         const resultsFile: string = await this.writeResults(results);
 
@@ -81,13 +100,15 @@ export class RunAnalyzerActionImpl implements RunAnalyzerAction {
         if (capturedErrors.length > 0) {
             return {
                 status: getMessage('runCompletedWithErrorsHeader') + '\n' + indent(capturedErrors.join('\n')),
-                resultsFile
+                resultsFile,
+                summary: generateSummary(results)
             };
         }
 
         return Promise.resolve({
             status: `success`,
-            resultsFile
+            resultsFile,
+            summary: generateSummary(results)
         });
     }
 
@@ -110,8 +131,42 @@ export class RunAnalyzerActionImpl implements RunAnalyzerAction {
         const milliseconds: string = String(dateTime.getMilliseconds()).padStart(3, '0');
         return `code-analyzer-results-${year}_${month}_${day}_${hours}_${minutes}_${seconds}_${milliseconds}.json`;
     }
+
+    private emitEngineTelemetry(ruleSelection: RuleSelection, results: RunResults, coreEngineNames: string[]): void {
+        const selectedEngineNames: Set<string> = new Set(ruleSelection.getEngineNames());
+        for (const coreEngineName of coreEngineNames) {
+            if (!selectedEngineNames.has(coreEngineName)) {
+                continue;
+            }
+            if (this.telemetryService) {
+                this.telemetryService.sendEvent(Constants.TelemetryEventName, {
+                    source: Constants.TelemetrySource,
+                    sfcaEvent: Constants.McpTelemetryEvents.ENGINE_SELECTION,
+                    engine: coreEngineName,
+                    ruleCount: ruleSelection.getRulesFor(coreEngineName).length
+                })
+                this.telemetryService.sendEvent(Constants.TelemetryEventName, {
+                    source: Constants.TelemetrySource,
+                    sfcaEvent: Constants.McpTelemetryEvents.ENGINE_EXECUTION,
+                    engine: coreEngineName,
+                    violationCount: results.getEngineRunResults(coreEngineName).getViolationCount()
+                })
+            }
+        }
+    }
 }
 
 export function indent(value: string): string {
     return '    ' + value.replaceAll('\n', `\n    `);
+}
+
+function generateSummary(results: RunResults): ViolationCounts {
+    return {
+        total: results.getViolationCount(),
+        sev1: results.getViolationCountOfSeverity(SeverityLevel.Critical),
+        sev2: results.getViolationCountOfSeverity(SeverityLevel.High),
+        sev3: results.getViolationCountOfSeverity(SeverityLevel.Moderate),
+        sev4: results.getViolationCountOfSeverity(SeverityLevel.Low),
+        sev5: results.getViolationCountOfSeverity(SeverityLevel.Info)
+    };
 }
