@@ -25,7 +25,7 @@ import { retrieveMetadataParams } from '../../src/tools/sf-retrieve-metadata.js'
 
 describe('sf-retrieve-metadata', () => {
   const client = new McpTestClient({
-    timeout: 600_000, // 10 minutes for retrieve operations
+    timeout: 60000,
   });
 
   let testSession: TestSession;

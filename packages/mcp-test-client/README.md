@@ -6,214 +6,81 @@ A type-safe MCP (Model Context Protocol) client designed specifically for testin
 
 - **Type-safe tool calling**: Use Zod schemas to define tool parameters with full TypeScript support
 - **Test runner agnostic**: No built-in assertions - works with any test framework (Jest, Vitest, Mocha, etc.)
-- **Node.js focused**: Optimized for Node.js v20+ with cross-platform support (Linux/Windows)
-- **Multiple transports**: Support for stdio, SSE, and WebSocket connections
-- **Automatic cleanup**: Built-in utilities for proper resource management in tests
-- **Minimal dependencies**: Only essential MCP SDK types and Zod
+- **DxMcpTransport**: Helper transport wrapper for Salesforce DX MCP server
 
 ## Installation
 
-```bash
-npm install @salesforce/mcp-test-client
-```
+Add `@salesforce/mcp-test-client` as a dev dependency in your tool provider package.
 
 ## Quick Start
 
-```typescript
-import { McpTestClient, TransportFactory } from "@salesforce/mcp-test-client";
-import { z } from "zod";
-
-// Define your tool schema with Zod
-const addNumbersSchema = {
-  name: z.literal("add_numbers"),
-  params: z.object({
-    a: z.number(),
-    b: z.number()
-  })
-};
-
-// Create and connect client
-const client = new McpTestClient({
-  name: "test-client",
-  version: "1.0.0"
-});
-
-// TODO: update example to use SDK's transport
-const transport = TransportFactory.createStdio({
-  command: "node",
-  args: ["path/to/your/mcp-server.js"]
-});
-
-await client.connect(transport);
-
-// Call tool with type safety
-const result = await client.callTool(addNumbersSchema, {
-  name: "add_numbers",
-  params: { a: 5, b: 3 }
-});
-
-// Use with your test framework
-expect(result.content[0].text).toBe("8");
-
-// Clean up
-await client.disconnect();
-```
-
-## API Reference
-
-### McpTestClient
-
-The main client class for interacting with MCP servers.
-
-#### Constructor
+### Salesforce E2E Testing with TestKit
 
 ```typescript
-new McpTestClient(options: McpTestClientOptions)
-```
+import path from 'node:path';
+import { expect } from 'chai';
+import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
+import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
+import { z } from 'zod';
+import { ensureString } from '@salesforce/ts-types';
 
-**Options:**
-- `name` (string): Client name for identification
-- `version` (string): Client version
-- `timeout` (number, optional): Default request timeout in milliseconds (default: 30000)
+describe('Salesforce Tool E2E Test', () => {
+  const client = new McpTestClient({
+    timeout: 300_000 // 5 minutes
+  });
 
-#### Methods
+  let testSession: TestSession;
+  let orgUsername: string;
 
-##### `connect(transport: Transport): Promise<void>`
+  const toolSchema = {
+    name: z.literal('sf-deploy-metadata'),
+    params: z.object({
+      usernameOrAlias: z.string(),
+      directory: z.string()
+    })
+  };
 
-Connects to an MCP server using the specified transport and performs initialization.
-
-##### `callTool<TName, TParams>(schema: ToolSchema<TName, TParams>, request: { name: TName; params: TParams }, timeout?: number): Promise<CallToolResult>`
-
-Calls an MCP tool with type-safe parameter validation.
-
-**Parameters:**
-- `schema`: Zod schema defining the tool name and parameters
-- `request`: Tool call request matching the schema
-- `timeout`: Optional timeout override for this request
-
-**Returns:** Promise resolving to the tool call result
-
-##### `disconnect(): Promise<void>`
-
-Disconnects from the server and cleans up resources.
-
-##### `connected: boolean`
-
-Read-only property indicating connection status.
-
-#### Static Methods
-
-##### `createStdio(options: StdioTransportOptions): Transport`
-
-Creates a stdio transport for subprocess communication.
-
-**Options:**
-- `command` (string): Command to execute
-- `args` (string[], optional): Command arguments
-- `env` (Record<string, string>, optional): Environment variables
-
-##### `createSSE(options: SSETransportOptions): Transport`
-
-Creates an SSE transport for HTTP-based communication.
-
-**Options:**
-- `url` (string): Server URL
-- `headers` (Record<string, string>, optional): HTTP headers
-
-## Examples
-
-### Basic Tool Testing
-
-```typescript
-import { describe, it, expect } from "vitest";
-// TODO: update example to use SDK's transport
-import { McpTestClient, TransportFactory } from "@salesforce/mcp-test-client";
-import { z } from "zod";
-
-describe("Calculator Tool", () => {
-  const client = new McpTestClient({ name: "test", version: "1.0.0" });
-
-  beforeAll(async () => {
-    const transport = TransportFactory.createStdio({
-      command: "node",
-      args: ["calculator-server.js"]
+  before(async () => {
+    // Create test session with Salesforce project and scratch org
+    testSession = await TestSession.create({
+      project: { gitClone: 'https://github.com/trailheadapps/dreamhouse-lwc' },
+      scratchOrgs: [{ setDefault: true, config: path.join('config', 'project-scratch-def.json') }],
+      devhubAuthStrategy: 'AUTO',
     });
+
+    orgUsername = [...testSession.orgs.keys()][0];
+
+    // Connect MCP client with DX MCP transport helper
+    const transport = DxMcpTransport({
+      orgUsername: ensureString(orgUsername)
+    });
+
     await client.connect(transport);
   });
 
-  afterAll(async () => {
-    await client.disconnect();
+  after(async () => {
+    if (client?.connected) {
+      await client.disconnect();
+    }
+    if (testSession) {
+      await testSession.clean();
+    }
   });
 
-  it("should add two numbers", async () => {
-    const addSchema = {
-      name: z.literal("add"),
-      params: z.object({
-        a: z.number(),
-        b: z.number()
-      })
-    };
-
-    const result = await client.callTool(addSchema, {
-      name: "add",
-      params: { a: 2, b: 3 }
+  it('should deploy metadata', async () => {
+    const result = await client.callTool(toolSchema, {
+      name: 'sf-deploy-metadata',
+      params: {
+        usernameOrAlias: orgUsername,
+        directory: testSession.project.dir
+      }
     });
 
-    expect(result.content).toHaveLength(1);
-    expect(result.content[0].type).toBe("text");
-    expect(result.content[0].text).toBe("5");
+    expect(result.isError).to.equal(false);
+    expect(result.content[0].text).to.contain('Deploy result:');
   });
 });
 ```
-
-### Error Handling
-
-```typescript
-import { McpTestClientError, ToolCallError } from "@salesforce/mcp-test-client/errors";
-
-try {
-  const result = await client.callTool(schema, invalidRequest);
-} catch (error) {
-  if (error instanceof ToolCallError) {
-    console.log(`Tool ${error.toolName} failed: ${error.message}`);
-  } else if (error instanceof McpTestClientError) {
-    console.log(`Client error: ${error.message}`);
-  }
-}
-```
-
-### Complex Tool Schemas
-
-```typescript
-// File operation tool
-const readFileSchema = {
-  name: z.literal("read_file"),
-  params: z.object({
-    path: z.string(),
-    encoding: z.enum(["utf8", "binary"]).default("utf8"),
-    lines: z.object({
-      start: z.number().min(1),
-      end: z.number().min(1)
-    }).optional()
-  })
-};
-
-// Database query tool
-const querySchema = {
-  name: z.literal("execute_query"),
-  params: z.object({
-    sql: z.string(),
-    parameters: z.record(z.any()).optional(),
-    timeout: z.number().positive().default(30000)
-  })
-};
-```
-
-## Platform Support
-
-- **Node.js**: v20.0.0 or higher
-- **Operating Systems**: Linux, Windows, macOS
-- **Module System**: ESM only
 
 ## License
 

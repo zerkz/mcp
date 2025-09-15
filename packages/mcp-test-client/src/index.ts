@@ -32,8 +32,8 @@ export class McpTestClient {
   private isConnected = false;
   private defaultTimeout: number;
 
-  constructor(options: McpTestClientOptions) {
-    this.defaultTimeout = options.timeout ?? 30000;
+  constructor(options?: McpTestClientOptions) {
+    this.defaultTimeout = options?.timeout ?? 30000;
   }
 
   async connect(transport: Transport): Promise<void> {

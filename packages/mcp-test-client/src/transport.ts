@@ -8,6 +8,21 @@ type DxMcpTransportOptions = {
   orgUsername?: string;
 };
 
+/**
+ * Transport helper for the Salesforce DX MCP server.
+ *
+ * If passing custom args, remember to always pass `--no-telemetry`, we don't want test runs to be captured.
+ *
+ * @param {DxMcpTransportOptions} options - Configuration options for the transport.
+ * 
+ * Inside this monorepo, `sf-mcp-server` is available in $PATH (when started from a yarn/npm script) and points to the `packages/mcp/bin/run.js` bin.
+ * Use `SF_MCP_SERVER_BIN` to specify a custom bin path (run tests with an npm-installed server version).
+ *
+ * @param {string} [options.command] - Custom command to execute. Defaults to the value of the `SF_MCP_SERVER_BIN` environment variable or 'sf-mcp-server'.
+ * @param {string[]} [options.args] - Arguments to pass to the command. Defaults to `['--orgs', options.orgUsername ?? 'DEFAULT_TARGET_ORG', '--no-telemetry']`.
+ * @param {string} [options.orgUsername] - The organization username. Used to avoid keychain errors in testing environments.
+ * @returns {StdioClientTransport} An instance of StdioClientTransport configured with the specified options.
+ */
 export function DxMcpTransport(
   options: DxMcpTransportOptions,
 ): StdioClientTransport {

@@ -23,7 +23,7 @@ import { ensureString } from '@salesforce/ts-types';
 import { assignPermissionSetParamsSchema } from '../../src/tools/sf-assign-permission-set.js';
 
 describe('sf-assign-permission-set', () => {
-  const client = new McpTestClient({});
+  const client = new McpTestClient();
 
   let testSession: TestSession;
   let orgUsername: string;

@@ -24,7 +24,7 @@ import { deployMetadataParams } from '../../src/tools/sf-deploy-metadata.js';
 
 describe('sf-deploy-metadata', () => {
   const client = new McpTestClient({
-    timeout: 600_000, // 10 minutes for deploy operations
+    timeout: 60000,
   });
 
   let testSession: TestSession;

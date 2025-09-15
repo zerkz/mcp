@@ -24,7 +24,7 @@ import { ensureString } from '@salesforce/ts-types';
 import { runApexTestsParam } from '../../src/tools/sf-test-apex.js';
 
 describe('sf-test-apex', () => {
-  const client = new McpTestClient({});
+  const client = new McpTestClient();
 
   let testSession: TestSession;
   let orgUsername: string;

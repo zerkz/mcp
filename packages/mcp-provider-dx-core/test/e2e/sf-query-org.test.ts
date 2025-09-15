@@ -23,9 +23,7 @@ import { ensureString } from '@salesforce/ts-types';
 import { queryOrgParamsSchema } from '../../src/tools/sf-query-org.js';
 
 describe('sf-query-org', () => {
-  const client = new McpTestClient({
-    timeout: 120_000, // 2 minutes for query operations
-  });
+  const client = new McpTestClient();
 
   let testSession: TestSession;
   let orgUsername: string;
