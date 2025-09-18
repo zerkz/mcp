@@ -35,7 +35,6 @@ export async function checkoutWorkitemBranch(
   }
 
   async function fetchAndCheckoutBranch(): Promise<{ content: ({ type: "text"; text: string; [x: string]: unknown })[] }> {
-    // Check for uncommitted changes
     const status = await execPromise('git status --porcelain', repoPath);
     if (status.stdout.trim().length > 0) {
       return {
@@ -45,13 +44,10 @@ export async function checkoutWorkitemBranch(
         }]
       };
     }
-    // Fetch all remote branches
     await execPromise('git fetch origin', repoPath);
-    // Check if branch exists locally
     const branchList = await execPromise('git branch --list', repoPath);
     const branchExists = branchList.stdout.split('\n').some(b => b.replace('*', '').trim() === branchName);
     if (!branchExists) {
-      // Checkout remote branch as new local branch
       const checkout = await execPromise(`git checkout -b ${branchName} origin/${branchName}`, repoPath);
       if (checkout.stderr && !checkout.stdout) {
         return {
@@ -68,7 +64,6 @@ export async function checkoutWorkitemBranch(
         }]
       };
     } else {
-      // Branch exists locally, just checkout
       const checkout = await execPromise(`git checkout ${branchName}`, repoPath);
       if (checkout.stderr && !checkout.stdout) {
         return {
@@ -78,7 +73,6 @@ export async function checkoutWorkitemBranch(
           }]
         };
       }
-      // Pull latest changes from remote
       const pull = await execPromise(`git pull`, repoPath);
       if (pull.stderr && !pull.stdout) {
         return {
@@ -97,7 +91,6 @@ export async function checkoutWorkitemBranch(
     }
   }
 
-  // Only proceed if repoPath exists
   if (!fs.existsSync(repoPath)) {
     return {
       content: [{
@@ -107,7 +100,6 @@ export async function checkoutWorkitemBranch(
     };
   }
 
-  // Check if .git exists in repoPath
   if (!fs.existsSync(path.join(repoPath, '.git'))) {
     return {
       content: [{
@@ -117,7 +109,6 @@ export async function checkoutWorkitemBranch(
     };
   }
 
-  // Check if the origin remote matches repoUrl
   const remoteCheck = await execPromise('git remote get-url origin', repoPath);
   if (!remoteCheck.stdout.trim().includes(repoUrl)) {
     return {
@@ -128,6 +119,5 @@ export async function checkoutWorkitemBranch(
     };
   }
 
-  // Repo exists, fetch and checkout branch
   return fetchAndCheckoutBranch();
 }

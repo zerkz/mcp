@@ -196,7 +196,6 @@ export async function fetchWorkItemsByNames(username: string, workItemNames: str
         const result: any = await connection.query(query);
         const records: any[] = result?.records || [];
 
-        // Cache pipeline stages per project to avoid repeated queries
         const projectStagesCache = new Map<string, ProjectStagesContext>();
 
         const workItems: WorkItem[] = [];

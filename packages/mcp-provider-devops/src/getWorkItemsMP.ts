@@ -3,7 +3,6 @@ import type { WorkItem } from "./types/WorkItem.js";
 import { getPipelineMP } from "./getPipelineMP.js";
 import { fetchPipelineStagesMP } from "./getPipelineStagesMP.js";
 
-// fetchWorkItemsMP function removed - not used anywhere
 
 export async function fetchWorkItemByNameMP(username: string, workItemName: string): Promise<WorkItem | null | any> {
     try {
@@ -13,7 +12,6 @@ export async function fetchWorkItemByNameMP(username: string, workItemName: stri
         if (!item) {
             return { error: { message: `Work Item '${workItemName}' not found. Please verify the Work Item Name/Number and try again.` } };
         }
-        // If concluded, stop further processing
         if (item?.sf_devops__Concluded__c && String(item.sf_devops__Concluded__c).trim().length > 0) {
             return { error: { message: `Work Item '${workItemName}' is concluded. No further actions required.` } };
         }
@@ -48,7 +46,6 @@ export async function fetchWorkItemByNameMP(username: string, workItemName: stri
     }
 }
 
-// Helpers (MP)
 async function queryWorkItemByName(connection: any, workItemName: string): Promise<any | null> {
     const query = `
         SELECT Id,

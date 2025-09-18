@@ -24,22 +24,14 @@ export function sanitizeOrgs(orgs: OrgAuthorization[]): SanitizedOrgAuthorizatio
 
   
 export async function getAllAllowedOrgs(): Promise<(SanitizedOrgAuthorization & { orgType?: string })[]> {    
-    // Get all orgs on the user's machine
     const allOrgs = await AuthInfo.listAllAuthorizations();
   
-    // Sanitize the orgs to remove sensitive data
     const sanitizedOrgs = sanitizeOrgs(allOrgs);
 
-    //todo: these will be removed after implementation of orgtype identification from env vars
-    // Get env usernames
-    //epic.out.3911bd11f31e@orgfarm.salesforce.com
-    //arun.tyagi@creative-otter-i0k30.com
-    //gcanariotdxblr@salesforce.com
     const devopsUsername = process.env.Devops_org_username || 'epic.out.3911bd11f31e@orgfarm.salesforce.com';
     const sandboxUsername = process.env.Sandbox_org_username || 'appdevdg-sdb4s@salesforce.com.sbox1clean';
     const mpUsername = process.env.MP_org_username || 'gcanariotdxblr@salesforce.com';
 
-    // Tag orgs based on configured usernames
     const taggedOrgs = sanitizedOrgs.map(org => {
       if (org.username === devopsUsername) {
         return { ...org, orgType: 'DevOps Center' };
@@ -58,9 +50,7 @@ export async function getAllAllowedOrgs(): Promise<(SanitizedOrgAuthorization & 
     return taggedOrgs;
   }
 
-// This function is the main entry point for Tools to get an allowlisted Connection
 export async function getConnection(username: string): Promise<Connection> {
-    // We get all allowed orgs each call in case the directory has changed (default configs)
     const allOrgs = await getAllAllowedOrgs();
     const foundOrg = findOrgByUsernameOrAlias(allOrgs, username);
   
@@ -81,7 +71,6 @@ export async function getConnection(username: string): Promise<Connection> {
     usernameOrAlias: string
   ): SanitizedOrgAuthorization | undefined {
     return allOrgs.find((org) => {
-      // Check if the org's username or alias matches the provided usernameOrAlias
       const isMatchingUsername = org.username === usernameOrAlias;
       const isMatchingAlias = org.aliases && Array.isArray(org.aliases) && org.aliases.includes(usernameOrAlias);
   
@@ -98,7 +87,6 @@ export async function getConnection(username: string): Promise<Connection> {
   }> {
     const allOrgs = await getAllAllowedOrgs();
     
-    // Find DevOps Center org
     const doceHub = allOrgs.find(org => org.orgType === 'DevOps Center') || null;
 
     let error = '';
@@ -122,7 +110,6 @@ export async function getConnection(username: string): Promise<Connection> {
   }> {
     const allOrgs = await getAllAllowedOrgs();
 
-    // Resolve from available orgs strictly by username
     const doceHub = allOrgs.find(org => org.username === devopsUsername) || null;
     const sandbox = allOrgs.find(org => org.username === sandboxUsername) || null;
 

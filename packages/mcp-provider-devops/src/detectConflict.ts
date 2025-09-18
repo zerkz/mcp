@@ -10,7 +10,6 @@ export async function detectConflict({
   localPath
 }: DetectConflictParams): Promise<{ content: ({ type: "text"; text: string; [x: string]: unknown })[] }> {
   
-  // If no workItem is provided, we need to fetch work items and ask user to select one
   if (!workItem) {
     return {
       content: [{
@@ -20,7 +19,6 @@ export async function detectConflict({
     };
   }
 
-  // Validate workItem has required properties
   if (!workItem.WorkItemBranch || !workItem.TargetBranch || !workItem.SourceCodeRepository?.repoUrl) {
     return {
       content: [{

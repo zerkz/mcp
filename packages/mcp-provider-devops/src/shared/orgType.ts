@@ -22,7 +22,6 @@ export async function isManagedPackageDevopsOrg(username: string, connectionOver
     if (isInvalidType) {
       return false;
     }
-    // For network/other errors, rethrow so callers can handle appropriately
     throw error;
   }
 }
