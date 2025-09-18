@@ -28,26 +28,7 @@ export async function getAllAllowedOrgs(): Promise<(SanitizedOrgAuthorization & 
   
     const sanitizedOrgs = sanitizeOrgs(allOrgs);
 
-    const devopsUsername = process.env.Devops_org_username || 'epic.out.3911bd11f31e@orgfarm.salesforce.com';
-    const sandboxUsername = process.env.Sandbox_org_username || 'appdevdg-sdb4s@salesforce.com.sbox1clean';
-    const mpUsername = process.env.MP_org_username || 'gcanariotdxblr@salesforce.com';
-
-    const taggedOrgs = sanitizedOrgs.map(org => {
-      if (org.username === devopsUsername) {
-        return { ...org, orgType: 'DevOps Center' };
-      } else if (org.username === mpUsername) {
-        return { ...org, orgType: 'Managed Package DevOps' };
-      } else if (org.username === sandboxUsername) {
-        return { ...org, orgType: 'Sandbox' };
-      } else {
-        return { ...org, orgType: 'Other' };
-      }
-    });
-
-    if (taggedOrgs.length === 0) {
-    }
-
-    return taggedOrgs;
+    return sanitizedOrgs;
   }
 
 export async function getConnection(username: string): Promise<Connection> {

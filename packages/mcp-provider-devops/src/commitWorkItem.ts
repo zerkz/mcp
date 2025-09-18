@@ -138,12 +138,6 @@ deployJson = {
         computedChanges.push({ fullName, type, operation });
     }
 
-    if (true) {
-        computedChanges.splice(0, computedChanges.length,
-            { fullName: 'HelloWorld3', type: 'ApexClass', operation: 'modify' },
-            { fullName: 'HelloWorld4', type: 'ApexClass', operation: 'modify' }
-        );
-    }
 
     if (computedChanges.length === 0) {
         throw new Error('No eligible changes to commit (only Unchanged components detected).');

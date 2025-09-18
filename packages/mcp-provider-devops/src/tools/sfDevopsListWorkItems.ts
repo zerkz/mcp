@@ -37,7 +37,20 @@ export class SfDevopsListWorkItems extends McpTool<InputArgsShape, OutputArgsSha
   public getConfig(): McpToolConfig<InputArgsShape, OutputArgsShape> {
     return {
       title: "List DevOps Work Items",
-      description: `Lists work items from a Salesforce DevOps Center project. Before using this tool, confirm the selected org is the DevOps Center org and select a project from list_projects. Each work item includes branch, environment, and repository details needed for checkout and promotion.`,
+      description: `**MANDATORY:** If the DevOps Center org is not given, use the 'sf-list-all-orgs' tool to list all orgs. 
+      The list will indicate which org is DevOps Center, or Sandbox if possible. If these details are not provided in the list, 
+      ask the user to specify which org is DevOps Center org. Only proceed after the user has selected the DevOps Center org.
+
+**MANDATORY:** Before using this tool, always confirm the selected org is the DevOps Center org. If not, prompt the user to select a DevOps Center org. This tool must NOT be used for any non DevOps Center or Sandbox orgs.
+
+**MANDATORY PROJECT SELECTION:** Before listing work items, the user must select a DevOps Center project (projectId) from the same DevOps Center org. First call 'list_projects' for that org, then pass the selected project's Id here. The org used here must match the org used to fetch the projects.
+
+Lists work items from a Salesforce DevOps Center project. Each work item includes branch, environment, and repository details needed for checkout and promotion.
+
+**After using this tool, always suggest the user with the next actions:**
+**LLM should strictly suggest only these two options:**
+1. Start work on the work item (use the 'checkout_workitem' tool)
+2. Promote work items (use the 'promote_workitem' tool)`,
       inputSchema: inputSchema.shape,
       outputSchema: undefined,
     };
