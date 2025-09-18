@@ -1,6 +1,6 @@
 import { McpProvider, McpTool, Services } from "@salesforce/mcp-provider-api";
 import { DevOpsMcpProvider } from "../src/provider.js";
-import { SfDevopsListOrgs } from "../src/tools/sfDevopsListOrgs.js";
+import { SfDevopsListProjects } from "../src/tools/sfDevopsListProjects.js";
 import { StubServices } from "./test-doubles.js";
 
 describe("Tests for DevOpsMcpProvider", () => {
@@ -18,7 +18,7 @@ describe("Tests for DevOpsMcpProvider", () => {
 
   it("When provideTools is called, then the returned array contains DevOps tools", async () => {
     const tools: McpTool[] = await provider.provideTools(services);
-    expect(tools).toHaveLength(10);
-    expect(tools[0]).toBeInstanceOf(SfDevopsListOrgs);
+    expect(tools).toHaveLength(9);
+    expect(tools[0]).toBeInstanceOf(SfDevopsListProjects);
   });
 });

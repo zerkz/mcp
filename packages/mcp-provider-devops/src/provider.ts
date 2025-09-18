@@ -1,5 +1,4 @@
 import { McpProvider, McpTool, Services } from "@salesforce/mcp-provider-api";
-import { SfDevopsListOrgs } from "./tools/sfDevopsListOrgs.js";
 import { SfDevopsListProjects } from "./tools/sfDevopsListProjects.js";
 import { SfDevopsListWorkItems } from "./tools/sfDevopsListWorkItems.js";
 import { SfDevopsPromoteWorkItem } from "./tools/sfDevopsPromoteWorkItem.js";
@@ -21,7 +20,6 @@ export class DevOpsMcpProvider extends McpProvider {
   public provideTools(services: Services): Promise<McpTool[]> {
     const telemetryService = services.getTelemetryService();
     return Promise.resolve([
-      new SfDevopsListOrgs(telemetryService),
       new SfDevopsListProjects(telemetryService),
       new SfDevopsListWorkItems(telemetryService),
       new SfDevopsPromoteWorkItem(telemetryService),
