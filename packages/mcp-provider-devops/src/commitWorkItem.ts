@@ -17,7 +17,6 @@ interface CommitWorkItemParams {
     workItem: { id: string };
     requestId: string;
     commitMessage: string;
-    changes: Change[];
     doceHubUsername: string;
     sandboxUsername: string;
     repoPath?: string;
@@ -39,7 +38,6 @@ export async function commitWorkItem({
     workItem,
     requestId,
     commitMessage,
-    changes,
     doceHubUsername,
     sandboxUsername,
     repoPath
