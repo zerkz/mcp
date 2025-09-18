@@ -60,32 +60,29 @@ export async function commitWorkItem({
         throw new Error('Missing Sandbox org access token or instance URL. Please check Sandbox org authentication.');
     }
 
+    // Use DevOps Center org for API endpoint and authentication
     const authToken = doceHubConnection.accessToken;
     const apiInstanceUrl = doceHubConnection.instanceUrl;
     
+    // Use Sandbox org for commit headers
     const sandboxToken = sandboxConnection.accessToken;
     const sandboxInstanceUrl = sandboxConnection.instanceUrl;
 
+    // STEP A: Resolve working directory
+
     const workingDir = repoPath && repoPath.trim().length > 0 ? repoPath : process.cwd();
 
+    // STEP B: Deploy local source to Sandbox to obtain component outcomes
     let deployJson: any;
     try {
-        const cmd = `sf project deploy start --source-dir force-app --target-org ${sandbox.username} --test-level NoTestRun --json | cat`;
-        if (false){
+        const cmd = `sf project deploy report --use-most-recent --target-org ${sandbox.username} --json | cat`;
         const out = execSync(cmd, { cwd: workingDir, encoding: 'utf8' });
         deployJson = JSON.parse(out);
-        }
     } catch (e: any) {
         throw new Error(`Deployment failed or output unparsable. Ensure repoPath is a valid SFDX project and CLI is authenticated. Details: ${e?.message || e}`);
     }
-deployJson = {
-    result: {
-        files: [],
-        details: {
-            componentSuccesses: []
-        }
-    }
-};
+
+    // STEP C: Extract files and component successes from deployment output
     const result = deployJson?.result || {};
     const files: Array<any> = Array.isArray(result?.files) ? result.files : [];
     const successes: Array<any> = Array.isArray(result?.details?.componentSuccesses) ? result.details.componentSuccesses : [];
