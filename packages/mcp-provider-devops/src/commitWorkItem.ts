@@ -181,11 +181,9 @@ deployJson = {
         changes: computedChanges
     };
 
-    console.log(`Committing work item ${workItem.id} with ${computedChanges.length} change(s) from deployment output...`);
 
     try {
         const response = await axios.post(url, requestBody, { headers });
-        console.log(`✅ Work item ${workItem.id} committed successfully`);
         
                         return {
                     success: true,
@@ -201,7 +199,6 @@ deployJson = {
                 };
     } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message;
-        console.error(` Failed to commit work item ${workItem.id}: ${errorMessage}`);
         throw new Error(`Failed to commit work item: ${errorMessage}`);
     }
 }

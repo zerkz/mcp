@@ -53,7 +53,6 @@ export async function getAllAllowedOrgs(): Promise<(SanitizedOrgAuthorization & 
     });
 
     if (taggedOrgs.length === 0) {
-      console.error('No orgs found that match the allowed orgs configuration. User should be loggedin into required orgs usi sf cli.');
     }
 
     return taggedOrgs;

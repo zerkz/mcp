@@ -37,11 +37,9 @@ export async function createPullRequest({
 
         const requestBody = {};
 
-        console.log(`Creating pull request for work item ${workItemId}...`);
 
         const response = await axios.post(url, requestBody, { headers });
         
-        console.log(`✅ Pull request created successfully for work item ${workItemId}`);
         
         return {
             success: true,
@@ -50,7 +48,6 @@ export async function createPullRequest({
             workItemId
         };
     } catch (error: any) {
-        console.error(`❌ Failed to create pull request for work item ${workItemId}:`, error.message);
         const errorMessage = error.response?.data?.message || error.message;
         throw new Error(`Failed to create pull request: ${errorMessage}`);
     }
