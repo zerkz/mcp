@@ -3,14 +3,10 @@ import { getConnection, getRequiredOrgs } from './shared/auth.js';
 import { execSync } from 'child_process';
 import path from 'path';
 
-/**
- * Minimal change payload expected by the DevOps Center commit API.
- * Keep this strictly limited to fields required by the endpoint.
- */
 interface Change {
     fullName: string;
     type: string;
-    operation: string; // expected: 'add' | 'modify' | 'delete' (case-insensitive upstream)
+    operation: string;
 }
 
 interface CommitWorkItemParams {
@@ -22,18 +18,6 @@ interface CommitWorkItemParams {
     repoPath?: string;
 }
 
-/**
- * Fresh commit flow (no pre-intersection):
- * 1) Run a deploy from repoPath to the Sandbox via sf CLI (NoTestRun, JSON output)
- * 2) Parse deployment result (files/componentSuccesses) to find Created/Changed components and their file paths
- * 3) Use git to detect locally changed files (modified, untracked, deleted) relative to repoPath
- * 4) Build the commit 'changes' array:
- *    - operation = 'delete' if any associated file is deleted locally
- *    - else operation = 'add' if any associated file is untracked locally OR component was Created by deploy
- *    - else operation = 'modify' if any associated file is modified locally OR component was Changed by deploy
- *    - else (Unchanged) include as 'modify' to satisfy user's request to include unchanged
- * 5) Call the DevOps Center connect commit API with computed 'changes'
- */
 export async function commitWorkItem({
     workItem,
     requestId,
@@ -58,19 +42,12 @@ export async function commitWorkItem({
         throw new Error('Missing Sandbox org access token or instance URL. Please check Sandbox org authentication.');
     }
 
-    // Use DevOps Center org for API endpoint and authentication
     const authToken = doceHubConnection.accessToken;
     const apiInstanceUrl = doceHubConnection.instanceUrl;
-    
-    // Use Sandbox org for commit headers
     const sandboxToken = sandboxConnection.accessToken;
     const sandboxInstanceUrl = sandboxConnection.instanceUrl;
 
-    // STEP A: Resolve working directory
-
     const workingDir = repoPath && repoPath.trim().length > 0 ? repoPath : process.cwd();
-
-    // STEP B: Deploy local source to Sandbox to obtain component outcomes
     let deployJson: any;
     try {
         const cmd = `sf project deploy report --use-most-recent --target-org ${sandbox.username} --json | cat`;
@@ -80,7 +57,6 @@ export async function commitWorkItem({
         throw new Error(`Deployment failed or output unparsable. Ensure repoPath is a valid SFDX project and CLI is authenticated. Details: ${e?.message || e}`);
     }
 
-    // STEP C: Extract files and component successes from deployment output
     const result = deployJson?.result || {};
     const files: Array<any> = Array.isArray(result?.files) ? result.files : [];
     const successes: Array<any> = Array.isArray(result?.details?.componentSuccesses) ? result.details.componentSuccesses : [];
@@ -128,7 +104,7 @@ export async function commitWorkItem({
             const hasChanged = Array.from(states).some(s => String(s).toLowerCase() === 'changed');
             if (hasCreated) operation = 'add';
             else if (hasChanged) operation = 'modify';
-            else operation = 'modify'; // include Unchanged as modify
+            else operation = 'modify';
         }
         computedChanges.push({ fullName, type, operation });
     }

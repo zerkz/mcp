@@ -38,7 +38,7 @@ export class SfDevopsCommitWorkItem extends McpTool<InputArgsShape, OutputArgsSh
   public getConfig(): McpToolConfig<InputArgsShape, OutputArgsShape> {
     return {
       title: "Commit Work Item",
-      description: `**THIS IS NOT A STARTING TOOL. Follow mandatory workflow: 1) List orgs and select DevOps Center + Sandbox 2) Select work item 3) Verify user is on correct branch 4) Ask user to deploy to Sandbox first 5) Ask for commit message 6) Run this tool. Commits changes to a work item in DevOps Center.`,
+      description: `Commits changes to a work item in DevOps Center.`,
       inputSchema: inputSchema.shape,
       outputSchema: undefined,
     };
