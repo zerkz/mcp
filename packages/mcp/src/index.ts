@@ -88,7 +88,7 @@ You can also use special values to control access to orgs:
       summary: 'Toolset(s) to enable. Set to "all" to enable every toolset',
       multiple: true,
       delimiter: ',',
-      exclusive: ['dynamic-toolsets'],
+      exclusive: ['dynamic-tools'],
     })(),
     // It would be nice if we could get these as an Flags.option
     // Since the tools need `services` passed in I am not sure we
@@ -98,7 +98,7 @@ You can also use special values to control access to orgs:
       summary: 'Tool(s) to enable',
       multiple: true,
       delimiter: ',',
-      exclusive: ['dynamic-toolsets'],
+      exclusive: ['dynamic-tools'],
     }),
     version: Flags.version(),
     'no-telemetry': Flags.boolean({
@@ -135,7 +135,7 @@ You can also use special values to control access to orgs:
       command: '<%= config.bin %> --orgs DEFAULT_TARGET_ORG --toolsets data --tools create_scratch_org',
     },
     {
-      description: 'Allow tools that are not generally available (GA) to be registered with the server',
+      description: 'Allow tools that are not generally available (NON-GA) to be registered with the server',
       command: '<%= config.bin %> --toolsets all --orgs DEFAULT_TARGET_ORG --allow-non-ga-tools',
     },
   ];
