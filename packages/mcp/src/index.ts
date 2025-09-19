@@ -135,7 +135,7 @@ You can also use special values to control access to orgs:
       command: '<%= config.bin %> --orgs DEFAULT_TARGET_ORG --toolsets data --tools create_scratch_org',
     },
     {
-      description: 'Allow tools that are not generally available (GA) to be registered with the server',
+      description: 'Allow tools that are not generally available (NON-GA) to be registered with the server',
       command: '<%= config.bin %> --toolsets all --orgs DEFAULT_TARGET_ORG --allow-non-ga-tools',
     },
   ];
