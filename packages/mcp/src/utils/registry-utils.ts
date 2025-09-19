@@ -40,7 +40,7 @@ export async function registerToolsets(
 ): Promise<void> {
   // If no toolsets, tools, or dynamic tools flag was passed, throw an error
   // NOTE: In the future we will also want to check for Personas here
-  if (!toolsets && !tools && !useDynamicTools) {
+  if (!toolsets.length && !tools.length && !useDynamicTools) {
     throw new Error('Tool registration error. Start server with one of the following flags: --toolsets, --tools, --dynamic-tools')
   }
 
