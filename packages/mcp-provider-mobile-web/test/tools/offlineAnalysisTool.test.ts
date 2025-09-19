@@ -15,7 +15,7 @@
  */
 
 import { McpToolConfig, ReleaseState, Toolset } from '@salesforce/mcp-provider-api';
-import { OfflineAnalysisTool } from '../../src/tools/offline-analysis/sf-mobile-web-offline-analysis.js';
+import { OfflineAnalysisTool } from '../../src/tools/offline-analysis/get_mobile_lwc_offline_analysis.js';
 import { ExpertsCodeAnalysisIssuesType } from '../../src/schemas/analysisSchema.js';
 import { LwcCodeType } from '../../src/schemas/lwcSchema.js';
 

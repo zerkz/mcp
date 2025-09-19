@@ -15,7 +15,7 @@
  */
 
 import { McpToolConfig, ReleaseState, Toolset } from '@salesforce/mcp-provider-api';
-import { OfflineGuidanceTool } from '../../src/tools/offline-guidance/sf-mobile-web-offline-guidance.js';
+import { OfflineGuidanceTool } from '../../src/tools/offline-guidance/get_mobile_lwc_offline_guidance.js';
 import { ExpertsReviewInstructionsType } from '../../src/schemas/analysisSchema.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
