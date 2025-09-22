@@ -90,7 +90,6 @@ jobs:
 
       - name: E2E tests with ${{ inputs.retries }} attempts
         run: |
-          sf-mcp-server --version
           cd packages/${{ inputs.provider }}
           ${{ inputs.command }}
         shell: bash
