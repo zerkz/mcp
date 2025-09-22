@@ -52,7 +52,7 @@ describe('sf-dynamic-tools', () => {
     console.log(result)
     expect(result.isError).to.be.false;
     // @ts-ignore
-    expect(result.content[0].text).to.equal('Tool query_org enabled\nTool deploy_metadata enabled');
+    expect(result.content[0].text).to.equal('Tool run_soql_query enabled\nTool deploy_metadata enabled');
 
     const updatedTools = (await client.listTools()).tools.map((t) => t.name).sort();
 
@@ -61,7 +61,7 @@ describe('sf-dynamic-tools', () => {
     );
   });
 
-  it.only('should list available tools to be enabled', async () => {
+  it('should list available tools to be enabled', async () => {
     const result = await client.callTool({
       name: 'list_tools',
     });
