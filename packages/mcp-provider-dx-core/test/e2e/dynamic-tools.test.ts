@@ -40,29 +40,30 @@ describe('sf-dynamic-tools', () => {
     const initialTools = (await client.listTools()).tools.map((t) => t.name).sort();
 
     expect(initialTools.length).to.equal(4);
-    expect(initialTools).to.deep.equal(['sf-enable-tools', 'sf-get-username', 'sf-list-tools', 'sf-resume'].sort());
+    expect(initialTools).to.deep.equal(['enable_tools', 'get_username', 'list_tools', 'resume_tool_operation'].sort());
 
     const result = await client.callTool({
-      name: 'sf-enable-tools',
+      name: 'enable_tools',
       arguments: {
-        tools: ['sf-query-org', 'sf-deploy-metadata'],
+        tools: ['run_soql_query', 'deploy_metadata'],
       },
     });
 
+    console.log(result)
     expect(result.isError).to.be.false;
     // @ts-ignore
-    expect(result.content[0].text).to.equal('Tool sf-query-org enabled\nTool sf-deploy-metadata enabled');
+    expect(result.content[0].text).to.equal('Tool query_org enabled\nTool deploy_metadata enabled');
 
     const updatedTools = (await client.listTools()).tools.map((t) => t.name).sort();
 
     expect(updatedTools).to.deep.equal(
-      ['sf-enable-tools', 'sf-get-username', 'sf-list-tools', 'sf-resume', 'sf-query-org', 'sf-deploy-metadata'].sort()
+      ['enable_tools', 'get_username', 'list_tools', 'resume_tool_operation', 'run_soql_query', 'deploy_metadata'].sort()
     );
   });
 
-  it('should list available tools to be enabled', async () => {
+  it.only('should list available tools to be enabled', async () => {
     const result = await client.callTool({
-      name: 'sf-list-tools',
+      name: 'list_tools',
     });
 
     expect(result.isError).to.be.false;

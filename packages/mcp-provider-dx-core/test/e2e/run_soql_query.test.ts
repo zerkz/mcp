@@ -20,16 +20,16 @@ import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { ensureString } from '@salesforce/ts-types';
-import { queryOrgParamsSchema } from '../../src/tools/sf-query-org.js';
+import { queryOrgParamsSchema } from '../../src/tools/run_soql_query.js';
 
-describe('sf-query-org', () => {
+describe('run_soql_query', () => {
   const client = new McpTestClient();
 
   let testSession: TestSession;
   let orgUsername: string;
 
   const queryOrgSchema = {
-    name: z.literal('sf-query-org'),
+    name: z.literal('run_soql_query'),
     params: queryOrgParamsSchema,
   };
 
@@ -80,7 +80,7 @@ describe('sf-query-org', () => {
 
   it('should query standard objects using regular API', async () => {
     const result = await client.callTool(queryOrgSchema, {
-      name: 'sf-query-org',
+      name: 'run_soql_query',
       params: {
         query: 'SELECT Name FROM Broker__c ORDER BY Name',
         usernameOrAlias: orgUsername,
@@ -125,7 +125,7 @@ describe('sf-query-org', () => {
 
   it('should query ApexClass using the Tooling API', async () => {
     const result = await client.callTool(queryOrgSchema, {
-      name: 'sf-query-org',
+      name: 'run_soql_query',
       params: {
         query: "SELECT SymbolTable from ApexClass where name='FileUtilities'",
         usernameOrAlias: orgUsername,
@@ -184,7 +184,7 @@ describe('sf-query-org', () => {
 
   it('should handle SOQL query errors', async () => {
     const result = await client.callTool(queryOrgSchema, {
-      name: 'sf-query-org',
+      name: 'run_soql_query',
       params: {
         query: 'SELECT InvalidField FROM NonExistentObject',
         usernameOrAlias: orgUsername,
@@ -203,7 +203,7 @@ describe('sf-query-org', () => {
 
   it('should handle missing usernameOrAlias parameter', async () => {
     const result = await client.callTool(queryOrgSchema, {
-      name: 'sf-query-org',
+      name: 'run_soql_query',
       params: {
         query: 'SELECT Id FROM User LIMIT 1',
         usernameOrAlias: '', // Empty username
@@ -217,7 +217,7 @@ describe('sf-query-org', () => {
 
     const responseText = result.content[0].text;
     expect(responseText).to.equal(
-      'The usernameOrAlias parameter is required, if the user did not specify one use the #sf-get-username tool'
+      'The usernameOrAlias parameter is required, if the user did not specify one use the #get_username tool'
     );
   });
 });

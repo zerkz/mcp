@@ -20,9 +20,9 @@ import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { ensureString } from '@salesforce/ts-types';
-import { deployMetadataParams } from '../../src/tools/sf-deploy-metadata.js';
+import { deployMetadataParams } from '../../src/tools/deploy_metadata.js';
 
-describe('sf-deploy-metadata', () => {
+describe('deploy_metadata', () => {
   const client = new McpTestClient({
     timeout: 60000,
   });
@@ -31,7 +31,7 @@ describe('sf-deploy-metadata', () => {
   let orgUsername: string;
 
   const deployMetadataSchema = {
-    name: z.literal('sf-deploy-metadata'),
+    name: z.literal('deploy_metadata'),
     params: deployMetadataParams,
   };
 
@@ -67,7 +67,7 @@ describe('sf-deploy-metadata', () => {
 
   it('should deploy the whole project', async () => {
     const result = await client.callTool(deployMetadataSchema, {
-      name: 'sf-deploy-metadata',
+      name: 'deploy_metadata',
       params: {
         usernameOrAlias: orgUsername,
         directory: testSession.project.dir,
@@ -104,7 +104,7 @@ describe('sf-deploy-metadata', () => {
     );
 
     const result = await client.callTool(deployMetadataSchema, {
-      name: 'sf-deploy-metadata',
+      name: 'deploy_metadata',
       params: {
         sourceDir: [apexClassPath],
         apexTests: ['GeocodingServiceTest'],
@@ -157,7 +157,7 @@ describe('sf-deploy-metadata', () => {
     );
 
     const result = await client.callTool(deployMetadataSchema, {
-      name: 'sf-deploy-metadata',
+      name: 'deploy_metadata',
       params: {
         sourceDir: [apexClassPath],
         apexTestLevel: 'RunAllTestsInOrg',
@@ -187,7 +187,7 @@ describe('sf-deploy-metadata', () => {
     );
 
     const result = await client.callTool(deployMetadataSchema, {
-      name: 'sf-deploy-metadata',
+      name: 'deploy_metadata',
       params: {
         sourceDir: [apexClassPath],
         apexTestLevel: 'RunAllTestsInOrg',

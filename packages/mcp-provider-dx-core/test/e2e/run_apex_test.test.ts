@@ -21,16 +21,16 @@ import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { ensureString } from '@salesforce/ts-types';
-import { runApexTestsParam } from '../../src/tools/sf-test-apex.js';
+import { runApexTestsParam } from '../../src/tools/run_apex_test.js';
 
-describe('sf-test-apex', () => {
+describe('run_apex_test', () => {
   const client = new McpTestClient();
 
   let testSession: TestSession;
   let orgUsername: string;
 
   const testApexSchema = {
-    name: z.literal('sf-test-apex'),
+    name: z.literal('run_apex_test'),
     params: runApexTestsParam,
   };
 
@@ -72,7 +72,7 @@ describe('sf-test-apex', () => {
 
   it('should run all tests in org', async () => {
     const result = await client.callTool(testApexSchema, {
-      name: 'sf-test-apex',
+      name: 'run_apex_test',
       params: {
         testLevel: TestLevel.RunAllTestsInOrg,
         usernameOrAlias: orgUsername,
@@ -102,7 +102,7 @@ describe('sf-test-apex', () => {
 
   it('should run a specific test class', async () => {
     const result = await client.callTool(testApexSchema, {
-      name: 'sf-test-apex',
+      name: 'run_apex_test',
       params: {
         testLevel: TestLevel.RunSpecifiedTests,
         classNames: ['GeocodingServiceTest'],
@@ -139,7 +139,7 @@ describe('sf-test-apex', () => {
 
   it('should fail if suiteName, methodNames and/or classNames params are set without testLevel!=RunSpecifiedTests', async () => {
     const result = await client.callTool(testApexSchema, {
-      name: 'sf-test-apex',
+      name: 'run_apex_test',
       params: {
         testLevel: TestLevel.RunAllTestsInOrg,
         classNames: ['GeocodingServiceTest'],

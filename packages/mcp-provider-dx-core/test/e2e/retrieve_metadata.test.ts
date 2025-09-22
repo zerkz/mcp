@@ -21,9 +21,9 @@ import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { ensureString } from '@salesforce/ts-types';
-import { retrieveMetadataParams } from '../../src/tools/sf-retrieve-metadata.js';
+import { retrieveMetadataParams } from '../../src/tools/retrieve_metadata.js';
 
-describe('sf-retrieve-metadata', () => {
+describe('retrieve_metadata', () => {
   const client = new McpTestClient({
     timeout: 60000,
   });
@@ -32,7 +32,7 @@ describe('sf-retrieve-metadata', () => {
   let orgUsername: string;
 
   const retrieveMetadataSchema = {
-    name: z.literal('sf-retrieve-metadata'),
+    name: z.literal('retrieve_metadata'),
     params: retrieveMetadataParams,
   };
 
@@ -73,7 +73,7 @@ describe('sf-retrieve-metadata', () => {
 
   it('should fail if both sourceDir and manifest params are set', async () => {
     const result = await client.callTool(retrieveMetadataSchema, {
-      name: 'sf-retrieve-metadata',
+      name: 'retrieve_metadata',
       params: {
         sourceDir: ['force-app/main/default/classes/GeocodingService.cls'],
         manifest: '/some/path/package.xml',
@@ -94,7 +94,7 @@ describe('sf-retrieve-metadata', () => {
     const apexClassPath = path.join('force-app', 'main', 'default', 'classes', 'GeocodingService.cls');
 
     const result = await client.callTool(retrieveMetadataSchema, {
-      name: 'sf-retrieve-metadata',
+      name: 'retrieve_metadata',
       params: {
         sourceDir: [apexClassPath],
         usernameOrAlias: orgUsername,
@@ -143,7 +143,7 @@ describe('sf-retrieve-metadata', () => {
     fs.writeFileSync(manifestPath, packageXmlContent);
 
     const result = await client.callTool(retrieveMetadataSchema, {
-      name: 'sf-retrieve-metadata',
+      name: 'retrieve_metadata',
       params: {
         manifest: manifestPath,
         usernameOrAlias: orgUsername,

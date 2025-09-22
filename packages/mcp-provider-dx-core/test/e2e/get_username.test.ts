@@ -20,18 +20,17 @@ import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { ensureString } from '@salesforce/ts-types';
-import { getUsernameParamsSchema } from '../../src/tools/sf-get-username.js';
+import { getUsernameParamsSchema } from '../../src/tools/get_username.js';
 
-describe('sf-get-username', () => {
+describe('get_username', () => {
   const client = new McpTestClient();
 
   let orgUsername: string;
 
   let testSession: TestSession;
 
-  // TODO: simplify this, we only care about params metadata
   const getUsernameSchema = {
-    name: z.literal('sf-get-username'),
+    name: z.literal('get_username'),
     params: getUsernameParamsSchema,
   };
 
@@ -64,7 +63,7 @@ describe('sf-get-username', () => {
 
   it('should resolve default org', async () => {
     const result = await client.callTool(getUsernameSchema, {
-      name: 'sf-get-username',
+      name: 'get_username',
       params: {
         defaultTargetOrg: true,
         directory: testSession.project.dir,
@@ -97,7 +96,7 @@ describe('sf-get-username', () => {
 
   it('should resolve default devhub', async () => {
     const result = await client.callTool(getUsernameSchema, {
-      name: 'sf-get-username',
+      name: 'get_username',
       params: {
         defaultTargetOrg: false,
         defaultDevHub: true,

@@ -20,16 +20,16 @@ import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
 import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { ensureString } from '@salesforce/ts-types';
-import { assignPermissionSetParamsSchema } from '../../src/tools/sf-assign-permission-set.js';
+import { assignPermissionSetParamsSchema } from '../../src/tools/assign_permission_set.js';
 
-describe('sf-assign-permission-set', () => {
+describe('assign_permission_set', () => {
   const client = new McpTestClient();
 
   let testSession: TestSession;
   let orgUsername: string;
 
   const assignPermissionSetSchema = {
-    name: z.literal('sf-assign-permission-set'),
+    name: z.literal('assign_permission_set'),
     params: assignPermissionSetParamsSchema,
   };
 
@@ -71,7 +71,7 @@ describe('sf-assign-permission-set', () => {
 
   it('should assign a permset', async () => {
     const result = await client.callTool(assignPermissionSetSchema, {
-      name: 'sf-assign-permission-set',
+      name: 'assign_permission_set',
       params: {
         permissionSetName: 'dreamhouse',
         usernameOrAlias: orgUsername,
@@ -89,7 +89,7 @@ describe('sf-assign-permission-set', () => {
 
   it('should fail if unable to set permset', async () => {
     const result = await client.callTool(assignPermissionSetSchema, {
-      name: 'sf-assign-permission-set',
+      name: 'assign_permission_set',
       params: {
         permissionSetName: 'nonexistent_permission_set',
         usernameOrAlias: orgUsername,
