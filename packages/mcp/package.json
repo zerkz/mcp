@@ -18,7 +18,7 @@
     "lint": "wireit",
     "start": "yarn build && npm link && mcp-inspector sf-mcp-server",
     "test": "wireit",
-    "test:only": "wireit"
+    "test:eval": "wireit"
   },
   "repository": "salesforcecli/mcp",
   "bugs": {
@@ -142,6 +142,14 @@
       "dependencies": [
         "test:compile",
         "lint"
+      ],
+      "output": []
+    }
+    },
+    "test:eval": {
+      "command": "vitest run",
+      "files": [
+        "test/**/*.eval.ts"
       ],
       "output": []
     }

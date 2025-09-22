@@ -12,6 +12,7 @@
     "test": {
       "dependencies": [
         "test:only",
+        "test:eval",
         "test:compile",
         "link-check"
       ]

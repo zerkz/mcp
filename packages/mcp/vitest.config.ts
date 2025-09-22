@@ -17,7 +17,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
     test: {
+        globals: true,
         include: ['**/*.eval.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-        reporters: ['vitest-evals/reporter'],
+        //reporters: ['vitest-evals/reporter'],
     },
 });
