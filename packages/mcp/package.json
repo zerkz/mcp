@@ -145,7 +145,7 @@
       ]
     },
     "test:only": {
-      "command": "nyc mocha \"test/**/*.test.ts\"",
+      "command": "nyc mocha \"test/**/*.test.ts\" && vitest run",
       "env": {
         "FORCE_COLOR": "2"
       },
