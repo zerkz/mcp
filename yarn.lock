@@ -3252,7 +3252,7 @@
   dependencies:
     "@salesforce/ts-types" "^2.0.12"
 
-"@salesforce/mcp-provider-api@0.3.0":
+"@salesforce/mcp-provider-api@0.3.0", "@salesforce/mcp-provider-api@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@salesforce/mcp-provider-api/-/mcp-provider-api-0.3.0.tgz#7ec38c653c72b8c54f99efb90fbeef13f62dfde9"
   integrity sha512-R10tweSst4WT/ZqYMvl7W5mhdQRlsRD694AQ0qmNFjEAKp8UA3qv6W7nCAfiQvOabyYYM0g47s2MWnhkyHMzrg==
