@@ -325,16 +325,16 @@ Includes these essential mobile tools, which aren't yet generally available:
 
 #### Aura Experts Toolset
 
- - sf-aura-create-blueprint-draft - (NON-GA)
+ - `aura_create_blueprint_draft` - (GA)
 Creates a comprehensive Product Requirements Document (PRD) blueprint for Aura component migration. Analyzes Aura component files and generates framework-agnostic specifications suitable for LWC migration, including business requirements, technical patterns, and migration guidelines.
 
- - sf-aura-enhance-blueprint-draft - (NON-GA)
+ - `aura_enhance_blueprint_draft` - (GA)
 Enhances an existing draft PRD with expert analysis and unknown resolution. Takes a draft blueprint and applies specialized Aura expert knowledge to resolve dependencies, add technical insights, and improve the migration specifications for better LWC implementation guidance.
 
- - sf-aura-dispatch-component-creation - (NON-GA)
+ - `aura_dispatch_component_creation` - (GA)
 Provides migration bridge guidance for creating LWC components from Aura specifications. Takes the enhanced PRD and generates specific implementation guidance, platform service mappings, and step-by-step instructions for building the equivalent LWC component.
 
- - sf-aura-orchestrate-migration - (NON-GA)
+ - `aura_orchestrate_migration` - (GA)
 Orchestrates the complete Aura to LWC migration workflow. Provides end-to-end guidance for the entire migration process, from initial analysis through final implementation, including best practices, tooling recommendations, and quality assurance steps.
 
 **NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
@@ -342,34 +342,34 @@ Orchestrates the complete Aura to LWC migration workflow. Provides end-to-end gu
 #### Lwc Experts Toolset
 
 ##### Component Development
- - sf-lwc-create-component - (GA) Creates complete LWC components from PRD specifications with proper structure and best practices
- - sf-lwc-generate-jest-tests - (GA) Generates comprehensive Jest test suites for LWC components with coverage and mocking
- - sf-lwc-review-jest-tests - (GA) Reviews and validates Jest test implementations for LWC components
+ - `lwc_create_component` - (GA) Creates complete LWC components from PRD specifications with proper structure and best practices
+ - `lwc_generate_jest_tests` - (GA) Generates comprehensive Jest test suites for LWC components with coverage and mocking
+ - `lwc_review_jest_tests` - (GA) Reviews and validates Jest test implementations for LWC components
 
 ##### Development Guidelines
- - sf-lwc-guide-accessibility - (GA) Provides accessibility guidelines and testing instructions for LWC components
- - sf-lwc-best-practices - (GA) Offers LWC development best practices and coding standards guidance
- - sf-lwc-guide-development - (GA) Comprehensive LWC development workflow and implementation guidelines
- - sf-lwc-guide-rtl - (GA) Right-to-Left internationalization support and RTL development guidance
- - sf-lwc-guide-uplift-ai-metadata - (GA) AI metadata enhancement for LWC components
- - sf-lwc-guide-slds2-uplift-linter-fixes - (GA) Analyzes the given LWC code along with the slds-linter output to fix issues using the SLDS2 knowledge
+ - `lwc_guide_accessibility` - (GA) Provides accessibility guidelines and testing instructions for LWC components
+ - `lwc_best_practices` - (GA) Offers LWC development best practices and coding standards guidance
+ - `lwc_guide_development` - (GA) Comprehensive LWC development workflow and implementation guidelines
+ - `lwc_guide_rtl` - (GA) Right-to-Left internationalization support and RTL development guidance
+ - `lwc_guide_uplift_ai_metadata` - (GA) AI metadata enhancement for LWC components
+ - `lwc_guide_slds2_uplift_linter_fixes` - (GA) Analyzes the given LWC code along with the slds-linter output to fix issues using the SLDS2 knowledge
 
 ##### Workflow Tools
- - sf-lwc-workflow-component-creation - (GA) Step-by-step component creation workflow guidance
- - sf-lwc-workflow-component-optimization - (GA)  Performance optimization and best practices for LWC components
- - sf-lwc-workflow-component-testing - (GA) Comprehensive testing workflow and test generation guidance
- - sf-lwc-workflow-slds2-uplift - (GA) Migration guidance for upgrading to SLDS2 design system
+ - `lwc_workflow_component_creation` - (GA) Step-by-step component creation workflow guidance
+ - `lwc_workflow_component_optimization` - (GA)  Performance optimization and best practices for LWC components
+ - `lwc_workflow_component_testing` - (GA) Comprehensive testing workflow and test generation guidance
+ - `lwc_workflow_slds2_uplift` - (GA) Migration guidance for upgrading to SLDS2 design system
 
 ##### LDS (Lightning Design System) Tools
- - sf-lds-explore-uiapi - (GA) Explores and documents Lightning Design System UI API capabilities
- - sf-lds-guide-data-consistency - (GA) Data consistency patterns and best practices for LDS components
- - sf-lds-guide-development - (GA) LDS development guidelines and component integration
- - sf-lds-guide-referential-integrity - (GA) Referential integrity patterns for LDS data management
+ - `lds_explore_uiapi` - (GA) Explores and documents Lightning Design System UI API capabilities
+ - `lds_guide_data_consistency` - (GA) Data consistency patterns and best practices for LDS components
+ - `lds_guide_development` - (GA) LDS development guidelines and component integration
+ - `lds_guide_referential_integrity` - (GA) Referential integrity patterns for LDS data management
 
 ##### Migration & Integration Tools
- - sf-aura-migration-completeness - (GA) Aura to LWC migration completeness checklist and validation
- - sf-figma-guide-lwc-conversion - (GA) Converts Figma designs to LWC component specifications
- - sf-accessibility-jest-test - (GA) Accessibility testing utilities and Jest integration for LWC components
+ - `aura_migration_completeness` - (GA) Aura to LWC migration completeness checklist and validation
+ - `figma_guide_lwc_conversion` - (GA) Converts Figma designs to LWC component specifications
+ - `accessibility_jest_test` - (GA) Accessibility testing utilities and Jest integration for LWC components
 
 **NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
 
