@@ -14,15 +14,17 @@ For feature requests and other related topics, start a Discussion [here](https:/
 For complete documentation about the Salesforce DX MCP Server, see [this section](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_mcp.htm) in the _Salesforce DX Developer Guide_. The docs include:
 
 * Comprehensive overview, including details about the security features
-* Quick Start guide
-* Examples of configuring the server in your MCP client
+* Quick start guide
+* Multiple examples of configuring the server in your MCP client
 * Sample prompts for invoking the core DX MCP tools
+
+[Here are the release notes.](https://github.com/forcedotcom/mcp/tree/main/releasenotes)
 
 ## Overview of the Salesforce DX MCP Server (Beta)
 
 The Salesforce DX MCP Server is a specialized Model Context Protocol (MCP) implementation designed to facilitate seamless interaction between large language models (LLMs) and Salesforce orgs. This MCP server provides a robust set of tools and capabilities that enable LLMs to read, manage, and operate Salesforce resources securely.
 
-**NOTE**: Salesforce DX MCP Server is a pilot or beta service that is subject to the Beta Services Terms at [Agreements - Salesforce.com](https://www.salesforce.com/company/legal/) or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the [Product Terms Directory](https://ptd.salesforce.com/). Use of this pilot or beta service is at the Customer's sole discretion.
+**NOTE**: _Salesforce DX MCP Server is a pilot or beta service that is subject to the Beta Services Terms at [Agreements - Salesforce.com](https://www.salesforce.com/company/legal/) or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the [Product Terms Directory](https://ptd.salesforce.com/). Use of this pilot or beta service is at the Customer's sole discretion._
 
 ## Configure the DX MCP Server
 
