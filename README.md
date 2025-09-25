@@ -6,130 +6,39 @@ MCP Server for Interacting with Salesforce Orgs
 
 ## Feedback
 
- Report bugs and issues [here](https://github.com/forcedotcom/mcp/issues).  
+Report bugs and issues [here](https://github.com/forcedotcom/mcp/issues).  
 For feature requests and other related topics, start a Discussion [here](https://github.com/forcedotcom/mcp/discussions).  
 
-## Overview of the Salesforce DX MCP Server (Developer Preview)
+## Documentation
+
+For complete documentation about the Salesforce DX MCP Server, see [this section](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_mcp.htm) in the _Salesforce DX Developer Guide_. The docs include:
+
+* Comprehensive overview, including details about the security features
+* Quick Start guide
+* Examples of configuring the server in your MCP client
+* Sample prompts for invoking the core DX MCP tools
+
+## Overview of the Salesforce DX MCP Server (Beta)
 
 The Salesforce DX MCP Server is a specialized Model Context Protocol (MCP) implementation designed to facilitate seamless interaction between large language models (LLMs) and Salesforce orgs. This MCP server provides a robust set of tools and capabilities that enable LLMs to read, manage, and operate Salesforce resources securely.
 
-Key Features:
-
-- Direct interaction with Salesforce orgs through LLM-driven tools.
-- Secure access using TypeScript libraries (not shelling out to the `sf` Salesforce CLI).
-- Improved security by avoiding the exposure of secrets in plain text.
-- Granular access control with org allowlisting.
-- Modular tool architecture for easy extensibility.
-
-**NOTE**: The Salesforce DX MCP Server is available as a developer preview. The feature isn’t generally available unless or until Salesforce announces its general availability in documentation or in press releases or public statements. All commands, parameters, and other features are subject to change or deprecation at any time, with or without notice. Don't implement functionality developed with these commands or tools. As we continue to enhance and refine the implementation, the available functionality and tools may evolve. We welcome feedback and contributions to help shape the future of this project.
-
-### Security Features
-
-The Salesforce DX MCP Server was designed with security as a top priority.
-
-- **Uses TypeScript libraries directly**
-
-  - Greatly decreases the size of the MCP Server.
-  - Significantly reduces the risk of remote code execution (RCE).
-
-- **No secrets needed in configuration**
-
-  - Eliminates the risk of plain text secret exposure.
-  - Accesses pre-existing (encrypted) auth files on the user's machine.
-  - Implements allowlisting for auth info key/values to prevent sensitive data exposure.
-
-- **No secrets exposed via MCP tools**
-
-  - Prevents other tools from accessing unencrypted tokens.
-  - Tools pass usernames around instead of tokens.
-
-- **Granular access control**
-
-  - MCP Server can access auth info for only orgs that have been explicitly allowlisted.
-  - Users specify allowed orgs when starting the server.
-
-### Agentforce for Developers Includes the Salesforce DX MCP Server
-
-Agentforce for Developers is an AI-powered Salesforce developer tool that's available as an easy-to-install Visual Studio Code (VS Code) extension. It includes Dev Agent (developer preview), an intelligent coding partner that provides information and, most importantly, can take action. Through agentic chat powered by MCP, Dev Agent can execute commands and perform complex workflows automatically, right from within VS Code.
-
-The Salesforce DX MCP server is pre-configured in Agentforce for Developers, so you can start using the DX MCP tools immediately after you install the extension in VS Code. 
-
-See [Set Up Agentforce for Developers](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/einstein-setup.html) and [Chat with Dev Agent (Dev Preview)](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/devagent-overview.html) for more information. 
-
-## Get Started Using VS Code as the Client
-
-Want to jump in and see what all the fuss is about? Read on!
-
-This example uses Visual Studio Code (VS Code) as the MCP client. After you configure it with the Salesforce DX MCP Server, you then use GitHub Copilot and natural language to easily execute typical Salesforce DX development tasks, such as listing your authorized orgs, viewing org records, and deploying or retrieving metadata.
-
-But you're not limited to using only VS Code and Copilot as the MCP client! As already mentioned, you can use [Agentforce for Developers](README.md#agentforce-for-developers-includes-the-salesforce-dx-mcp-server), which is pre-configured with the DX MCP server.  Or you can [configure many other clients](README.md#configure-other-clients-to-use-the-salesforce-dx-mcp-server) to use the Salesforce DX MCP Server, such as Cursor, Cline, Claude Desktop, Zed, Windsurf, and more. 
-
-**Before You Begin**
-
-For the best getting-started experience, make sure that you have a Salesforce DX environment set up on your computer. In particular:
-
-- [Install Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm) on your computer.
-- [Install VS Code](https://code.visualstudio.com/docs) on your computer.
-- [Create a Salesforce DX project](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm) and open it in VS Code. You can also clone an example repo, such as [dreamhouse-lwc](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro_sample_repo.htm), which is a ready-to-use DX project that contains a simple Salesforce application, with metadata and test data.
-- [Authorize at least one Salesforce org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_web_flow.htm) to use with your DX project. You can also create a scratch org.
-
-**Let's Do It**
-
-1. Create a `.vscode/mcp.json` file at the root of your DX project and add this JSON:
-
-   ```json
-   {
-     "servers": {
-       "Salesforce DX": {
-         "type": "stdio",
-         "command": "npx",
-         "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG", "--toolsets", "all"]
-       }
-     }
-   }
-   ```
-
-   You can also configure the MCP server globally by editing the VS Code [settings.json](https://code.visualstudio.com/docs/configure/settings#_settings-file-locations) file and adding a similar JSON snippet but contained in an `mcp:servers` section.
-
-   The `--orgs` flag is required and specifies the authorized orgs you're allowing the MCP server to access. The `--toolsets` and `--tools` flags are used to specify which tools the server will start with. See [Configure the DX MCP Server](README.md#configure-the-dx-mcp-server) for the available values for these flags.
-
-1. Open VS Code, go to **View -> Command Palette** and enter **MCP: List Servers**.
-
-   TIP: You can also get to the command palette by pressing press Ctrl+Shift+P (Windows or Linux) or Command-Shift-P (macOS).
-
-1. Click `Salesforce DX`, then **Start Server**.
-
-   Check the Output tab for the server status.
-
-1. Run **Chat: Open Chat (Agent)** from the command palette to start a new GitHub Copilot chat session.
-
-   Be sure your Copilot chat window is in `Agent` mode; if you're in `Ask` or `Edit` mode, use the [little drop-down](https://github.blog/ai-and-ml/github-copilot/copilot-ask-edit-and-agent-modes-what-they-do-and-when-to-use-them/) to switch.
-
-1. In the GitHub Copilot chat window, use natural language to explain what you want to do. The MCP server determines which configured tool to use, and then shows it to you along with other information. Click **Continue** to run the tool and see the results of your request.
-
-   Try out these examples:
-
-   - List all my orgs.
-   - Which are my active scratch orgs?
-   - Show me all the accounts in the org with alias my-org.
-   - Deploy everything in my project to the org with alias my-org.
-   - Do you see any performance or security issues with the Apex code in the `MyApexClass.cls` file?
-   - I see that my Apex code violates the pmd:ApexCRUDViolation rule; can you give me more information about this rule?
-
-1. To stop, restart, or view the MCP server configuration, run the **MCP: List Servers** command, click `Salesforce DX`, then click the appropriate option.
+**NOTE**: Salesforce DX MCP Server is a pilot or beta service that is subject to the Beta Services Terms at [Agreements - Salesforce.com](https://www.salesforce.com/company/legal/) or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the [Product Terms Directory](https://ptd.salesforce.com/). Use of this pilot or beta service is at the Customer's sole discretion.
 
 ## Configure the DX MCP Server
 
 Configure the Salesforce DX MCP Server by passing flags to the `args` option. Surround the flag name and its value each in double quotes, and separate all flags and values with commas. Some flags are Boolean and don't take a value. 
 
-This example shows two flags that take a string value (`--orgs` and `--toolsets`) and one Boolean flag (`--allow-non-ga-tools`):
+This example shows three flags that take a string value (`--orgs`, `--toolsets`, and `--tools`) and one Boolean flag (`--allow-non-ga-tools`):
 
 ```
      "servers": {
        "Salesforce DX": {
-         "type": "stdio",
          "command": "npx",
-         "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG", "--toolsets", "all", "--allow-non-ga-tools"]
+         "args": ["-y", "@salesforce/mcp", 
+         "--orgs", "DEFAULT_TARGET_ORG", 
+         "--toolsets", "orgs,metadata,data,users",
+         "--tools", "run_apex_tests",
+         "--allow-non-ga-tools"]
        }
      }
 ```
@@ -155,46 +64,25 @@ You must explicitly [authorize the orgs](https://developer.salesforce.com/docs/a
 
 These are the available values for the `--orgs` flag:
 
-- `DEFAULT_TARGET_ORG` - Allow access to your default org. If you've set a local default org in your DX project, the MCP server uses it. If not, the server uses a globally-set default org.
-- `DEFAULT_TARGET_DEV_HUB` - Allow access to your default Dev Hub org. If you've set a local default Dev Hub org in your DX project, the MCP server uses it. If not, the server uses a globally-set default Dev Hub org.
-- `ALLOW_ALL_ORGS` - Allow access to all authorized orgs. Use this value with caution.
-- `<username or alias>` - Allow access to a specific org by specifying its username or alias.
+| --orgs Value | Description |
+| -------- | ---------- |
+| `DEFAULT_TARGET_ORG` | Allow access to your default org. If you've set a local default org in your DX project, the MCP server uses it. If not, the server uses a globally-set default org.|
+| `DEFAULT_TARGET_DEV_HUB` | Allow access to your default Dev Hub org. If you've set a local default Dev Hub org in your DX project, the MCP server uses it. If not, the server uses a globally-set default Dev Hub org.|
+| `ALLOW_ALL_ORGS` | Allow access to all authorized orgs. Use this value with caution.|
+| `<username or alias>` | Allow access to a specific org by specifying its username or alias.|
 
-This example shows how to specify that the MCP tools run against your default org when you configure the MCP server for VS Code:
-
-```json
-       "servers": {
-         "Salesforce DX": {
-           "type": "stdio",
-           "command": "npx",
-           "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG"]
-         }
-       }
-```
-
-This sample snippet shows how to configure access to your default Dev Hub org and an org with username `test-org@example.com`:
-
-```json
-           "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_DEV_HUB,test-org@example.com"]
-```
-
-This sample snippet shows how to configure access to two orgs for which you specified aliases when you authorized them:
-
-```json
-           "args": ["-y", "@salesforce/mcp", "--orgs", "my-scratch-org,my-dev-hub"]
-```
 
 ### Configure Toolsets
 
 The Salesforce DX MCP Server supports **toolsets** - a way to selectively enable different groups of MCP tools based on your needs. This allows you to run the MCP server with only the tools you require, which in turn reduces the context.
 
-Use the `--toolsets` flag to specify the toolsets when you configure the Salesforce DX MCP Server. Separate multiple toolsets with commas. Set `--toolsets` to `all` to register every available toolset.
+Use the `--toolsets` flag to specify the toolsets when you configure the Salesforce DX MCP Server. Separate multiple toolsets with commas. 
 
 These are the available toolsets.
 
 | Toolset| Description|
 | ----- | ----- |
-| `all` | Enables all available tools from all toolsets. |
+| `all` | Enables all available tools from all toolsets. Use caution, this will load over 60 tools. |
 | `orgs` | [Tools to manage your authorized orgs.](README.md#orgs-toolset)|
 | `data` | [Tools to manage the data in your org, such as listing all accounts.](README.md#data-toolset)|
 | `users` | [Tools to manage org users, such as assigning a permission set.](README.md#users-toolset)|
@@ -206,44 +94,12 @@ These are the available toolsets.
 | `aura-experts` | [Tools which provides Aura component analysis, blueprinting, and migration expertise.](README.md#aura-experts-toolset)|
 | `lwc-experts`  | [Tools to assist with LWC development, testing, optimization, and best practices.](README.md#lwc-experts-toolset)|
 
-This example shows how to enable the `data`, `orgs`, `metadata`, and `other` toolsets when configuring the MCP server for VS Code:
-
-```json
-       "servers": {
-         "Salesforce DX": {
-           "type": "stdio",
-           "command": "npx",
-           "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG", "--toolsets", "data,orgs,metadata,other"]
-         }
-       }
-```
 
 ### Configure Tools
 
 The Salesforce DX MCP Server also supports registering individual **tools**. This can be used in combination with **toolsets** to further fine-tune registered tools.
 
 Use the `--tools` flag to enable specific tools when you configure the Salesforce DX MCP Server. Separate multiple tools with commas. The `--tools` flag is optional.
-
-This example shows how to enable the `orgs` and `metadata` toolsets, as well as the `run_soql_query` and `run_apex_test` tools when configuring the MCP server for VS Code:
-
-```json
-       "servers": {
-         "Salesforce DX": {
-           "type": "stdio",
-           "command": "npx",
-           "args": [
-              "-y",
-              "@salesforce/mcp", 
-              "--orgs", 
-              "DEFAULT_TARGET_ORG", 
-              "--toolsets",
-              "orgs,metadata"
-              "--tools",
-              "run_soql_query,run_apex_test"
-            ]
-         }
-       }
-```
 
 
 #### Core Toolset (always enabled)
@@ -383,44 +239,3 @@ Includes these tools, which aren't yet generally available:
 
 
 **NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
-
-## Configure Other Clients to Use the Salesforce DX MCP Server
-
-**Cursor**
-
-To configure [Cursor](https://www.cursor.com/) to work with Salesforce DX MCP Server, add this snippet to your Cursor `mcp.json` file:
-
-```json
-{
-  "mcpServers": {
-    "Salesforce DX": {
-      "command": "npx",
-      "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG", "--toolsets", "all"]
-    }
-  }
-}
-```
-
-**Cline**
-
-To configure [Cline](https://cline.bot), add this snippet to your Cline `cline_mcp_settings.json` file:
-
-```json
-{
-  "mcpServers": {
-    "Salesforce DX": {
-      "command": "npx",
-      "args": ["-y", "@salesforce/mcp", "--orgs", "DEFAULT_TARGET_ORG", "--toolsets", "all"]
-    }
-  }
-}
-```
-
-**Other Clients**
-
-For these other clients, refer to their documentation for adding MCP servers and follow the same pattern as in the preceding VS Code and Cursor JSON snippets:
-
-- [Claude Desktop](https://claude.ai/download)
-- [Zed](https://github.com/zed-industries/zed)
-- [Windsurf](https://www.windsurf.com/)
-- [Trae](https://trae.ai)
