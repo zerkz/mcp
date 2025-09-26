@@ -24,13 +24,14 @@ For complete documentation about the Salesforce DX MCP Server, see [this section
 
 The Salesforce DX MCP Server is a specialized Model Context Protocol (MCP) implementation designed to facilitate seamless interaction between large language models (LLMs) and Salesforce orgs. This MCP server provides a robust set of tools and capabilities that enable LLMs to read, manage, and operate Salesforce resources securely.
 
-**NOTE**: _Salesforce DX MCP Server is a pilot or beta service that is subject to the Beta Services Terms at [Agreements - Salesforce.com](https://www.salesforce.com/company/legal/) or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the [Product Terms Directory](https://ptd.salesforce.com/). Use of this pilot or beta service is at the Customer's sole discretion._
+> [!NOTE]
+> _Salesforce DX MCP Server is a pilot or beta service that is subject to the Beta Services Terms at [Agreements - Salesforce.com](https://www.salesforce.com/company/legal/) or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the [Product Terms Directory](https://ptd.salesforce.com/). Use of this pilot or beta service is at the Customer's sole discretion._
 
 ## Configure the DX MCP Server
 
-Configure the Salesforce DX MCP Server by passing flags to the `args` option. Surround the flag name and its value each in double quotes, and separate all flags and values with commas. Some flags are Boolean and don't take a value. 
+Configure the Salesforce DX MCP Server for your MCP client by updating its associated MCP-related JSON file; each client is slightly different, so check your client documentation for details. 
 
-This example shows three flags that take a string value (`--orgs`, `--toolsets`, and `--tools`) and one Boolean flag (`--allow-non-ga-tools`):
+Here's an example for VS Code with Copilot:
 
 ```
      "servers": {
@@ -44,9 +45,19 @@ This example shows three flags that take a string value (`--orgs`, `--toolsets`,
        }
      }
 ```
+The preceding `args` format is the same for all MCP clients and where you customize the DX MCP server for your particular environment. 
+
+The example shows how to pass flags to the `args` option. Surround the flag name and its value each in double quotes, and separate all flags and values with commas. Some flags are Boolean and don't take a value.  The example shows three flags that take a string value (`--orgs`, `--toolsets`, and `--tools`) and one Boolean flag (`--allow-non-ga-tools`). 
+
 The `"-y", "@salesforce/mcp"` part tells `npx` to automatically install the `@salesforce/mcp` package instead of asking permission. Don't change this. 
 
-These are the available flags that you can pass to the `args` option. 
+The following sections list the flags you can pass `args`, and the available values for the flags. 
+<details>
+<summary>Avaliable "args" Flags</summary>
+
+### Avaliable "args" Flags
+
+These are the flags that you can pass to the `args` option. 
 
 | Flag Name | Description | Required? |Notes |
 | -----------------| -------| ------- | ----- |
@@ -57,6 +68,11 @@ These are the available flags that you can pass to the `args` option.
 | `--debug` | Boolean flag that requests that the DX MCP Server print debug logs. | No | Debug mode is disabled by default. <br/> <br/>**NOTE:** Not all MCP clients expose MCP logs, so this flag might not work for all IDEs. |
 | `--allow-non-ga-tools` | Boolean flag to allow the DX MCP Server to use both the generally available (GA) and NON-GA tools that are in the toolsets or tools you specify. | No | By default, the DX MCP server uses only the tools marked GA. |
 | `--dynamic-tools` | (experimental) Boolean flag that enables dynamic tool discovery and loading. When specified, the DX MCP server starts with a minimal set of core tools and loads new tools as needed. | No| This flag is useful for reducing the initial context size and improving LLM performance. Dynamic tool discovery is disabled by default.<br/> <br/>**NOTE:** This feature works in VSCode and Cline but may not work in other environments.|
+
+</details>
+<details>
+
+<summary>Configure Orgs</summary>
 
 ### Configure Orgs
 
@@ -73,6 +89,10 @@ These are the available values for the `--orgs` flag:
 | `ALLOW_ALL_ORGS` | Allow access to all authorized orgs. Use this value with caution.|
 | `<username or alias>` | Allow access to a specific org by specifying its username or alias.|
 
+</details>
+
+<details>
+<summary>Configure Toolsets and Tools</summary>
 
 ### Configure Toolsets
 
@@ -96,13 +116,11 @@ These are the available toolsets.
 | `aura-experts` | [Tools which provides Aura component analysis, blueprinting, and migration expertise.](README.md#aura-experts-toolset)|
 | `lwc-experts`  | [Tools to assist with LWC development, testing, optimization, and best practices.](README.md#lwc-experts-toolset)|
 
-
 ### Configure Tools
 
 The Salesforce DX MCP Server also supports registering individual **tools**. This can be used in combination with **toolsets** to further fine-tune registered tools.
 
 Use the `--tools` flag to enable specific tools when you configure the Salesforce DX MCP Server. Separate multiple tools with commas. The `--tools` flag is optional.
-
 
 #### Core Toolset (always enabled)
 
@@ -241,3 +259,5 @@ Includes these tools, which aren't yet generally available:
 
 
 **NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
+
+</details>
