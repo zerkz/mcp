@@ -121,6 +121,8 @@ The Salesforce DX MCP Server also supports registering individual **tools**. Thi
 
 Use the `--tools` flag to enable specific tools when you configure the Salesforce DX MCP Server. Separate multiple tools with commas. The `--tools` flag is optional.
 
+The following sections list all the tools that are included in a specific toolset. 
+
 #### Core Toolset (always enabled)
 
 Includes these tools:
