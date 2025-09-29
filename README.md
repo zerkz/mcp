@@ -13,10 +13,10 @@ For feature requests and other related topics, start a Discussion [here](https:/
 
 For complete documentation about the Salesforce DX MCP Server, see [this section](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_mcp.htm) in the _Salesforce DX Developer Guide_. The docs include:
 
-* Comprehensive overview, including details about the security features
-* Quick start guide
-* Multiple examples of configuring the server in your MCP client
-* Sample prompts for invoking the core DX MCP tools
+* Comprehensive overview, including details about the security features.
+* Quick start guide.
+* Multiple examples of configuring the server in your MCP client.
+* Sample prompts for invoking the core DX MCP tools.
 
 [Here are the release notes.](https://github.com/forcedotcom/mcp/tree/main/releasenotes)
 
@@ -29,11 +29,12 @@ The Salesforce DX MCP Server is a specialized Model Context Protocol (MCP) imple
 
 ## Configure the DX MCP Server
 
-Configure the Salesforce DX MCP Server for your MCP client by updating its associated MCP JSON file; each client is slightly different, so check your client documentation for details. 
+Configure the Salesforce DX MCP Server for your MCP client by updating its associated MCP JSON file; each client is slightly different, so check your MCP client documentation for details. 
 
-Here's an example for VS Code with Copilot where you update the `.vscode/mcp.json` file in your project:
+Here's an example for VS Code with Copilot in which you create and update a `.vscode/mcp.json` file in your project:
 
 ```
+{
      "servers": {
        "Salesforce DX": {
          "command": "npx",
@@ -44,12 +45,14 @@ Here's an example for VS Code with Copilot where you update the `.vscode/mcp.jso
          "--allow-non-ga-tools"]
        }
      }
+}
 ```
-The `args` format shown in the preceding example is the same for all MCP clients and how you customize the DX MCP server for your particular environment. See the *Reference* sections below for the possible flags you can pass the `args` option, and possible values you can pass to the `--orgs`, `--toolsets`, and `--tools` flags. 
+The `args` format shown in the preceding example is the same for all MCP clients; it's how you customize the DX MCP Server for your particular environment. Notes:
 
-When writing the `args` option, surround both the flag names and their values in double quotes, and separate all flags and values with commas. Some flags are Boolean and don't take a value.  The preceding example shows three flags that take a string value (`--orgs`, `--toolsets`, and `--tools`) and one Boolean flag (`--allow-non-ga-tools`). 
-
-The `"-y", "@salesforce/mcp"` part tells `npx` to automatically install the `@salesforce/mcp` package instead of asking permission. Don't change this. 
+- The `"-y", "@salesforce/mcp"` part tells `npx` to automatically install the `@salesforce/mcp` package instead of asking permission. Don't change this. 
+- See the *Reference* sections below for the possible flags you can pass the `args` option, and possible values you can pass to the `--orgs`, `--toolsets`, and `--tools` flags. 
+- When writing the `args` option, surround both the flag names and their values in double quotes, and separate all flags and values with commas. Some flags are Boolean and don't take a value.
+- The preceding example shows three flags that take a string value (`--orgs`, `--toolsets`, and `--tools`) and one Boolean flag (`--allow-non-ga-tools`).  This configuration starts a DX MCP Server that enables all the MCP tools in the `orgs`, `metadata`, `data`, and `users` toolsets and a specific tool called `run_apex_tests`.  It also enables tools in these configured toolsets that aren't yet generally available. 
 
 <details>
 <summary>Reference: Available Flags for the `args` Option</summary>
