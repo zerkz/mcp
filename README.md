@@ -29,9 +29,9 @@ The Salesforce DX MCP Server is a specialized Model Context Protocol (MCP) imple
 
 ## Configure the DX MCP Server
 
-Configure the Salesforce DX MCP Server for your MCP client by updating its associated MCP-related JSON file; each client is slightly different, so check your client documentation for details. 
+Configure the Salesforce DX MCP Server for your MCP client by updating its associated MCP JSON file; each client is slightly different, so check your client documentation for details. 
 
-Here's an example for VS Code with Copilot:
+Here's an example for VS Code with Copilot where you update the `.vscode/mcp.json` file in your project:
 
 ```
      "servers": {
@@ -45,17 +45,16 @@ Here's an example for VS Code with Copilot:
        }
      }
 ```
-The preceding `args` format is the same for all MCP clients and where you customize the DX MCP server for your particular environment. 
+The `args` format shown in the preceding example is the same for all MCP clients and how you customize the DX MCP server for your particular environment. See the *Reference* sections below for the possible flags you can pass the `args` option, and possible values you can pass to the `--orgs`, `--toolsets`, and `--tools` flags. 
 
-The example shows how to pass flags to the `args` option. Surround the flag name and its value each in double quotes, and separate all flags and values with commas. Some flags are Boolean and don't take a value.  The example shows three flags that take a string value (`--orgs`, `--toolsets`, and `--tools`) and one Boolean flag (`--allow-non-ga-tools`). 
+When writing the `args` option, surround both the flag names and their values in double quotes, and separate all flags and values with commas. Some flags are Boolean and don't take a value.  The preceding example shows three flags that take a string value (`--orgs`, `--toolsets`, and `--tools`) and one Boolean flag (`--allow-non-ga-tools`). 
 
 The `"-y", "@salesforce/mcp"` part tells `npx` to automatically install the `@salesforce/mcp` package instead of asking permission. Don't change this. 
 
-The following sections list the flags you can pass `args`, and the available values for the flags. 
 <details>
-<summary>Avaliable "args" Flags</summary>
+<summary>Reference: Available Flags for the `args` Option</summary>
 
-### Avaliable "args" Flags
+### Reference: Available Flags for the "args" Option
 
 These are the flags that you can pass to the `args` option. 
 
@@ -72,7 +71,7 @@ These are the flags that you can pass to the `args` option.
 </details>
 <details>
 
-<summary>Configure Orgs</summary>
+<summary>Reference: Configure Orgs</summary>
 
 ### Configure Orgs
 
@@ -92,7 +91,7 @@ These are the available values for the `--orgs` flag:
 </details>
 
 <details>
-<summary>Configure Toolsets and Tools</summary>
+<summary>Reference: Configure Toolsets and Tools</summary>
 
 ### Configure Toolsets
 
