@@ -56,7 +56,7 @@ The `args` format shown in the preceding example is the same for all MCP clients
 <details>
 <summary>Reference: Available Flags for the `args` Option</summary>
 
-### Reference: Available Flags for the "args" Option
+## Reference: Available Flags for the "args" Option
 
 These are the flags that you can pass to the `args` option. 
 
@@ -75,7 +75,7 @@ These are the flags that you can pass to the `args` option.
 
 <summary>Reference: Configure Orgs</summary>
 
-### Configure Orgs
+## Configure Orgs
 
 The Salesforce MCP tools require an org, and so you must include the required `--orgs` flag to specify at least one authorized org when you configure the MCP server. Separate multiple values with commas.
 
@@ -95,7 +95,7 @@ These are the available values for the `--orgs` flag:
 <details>
 <summary>Reference: Configure Toolsets and Tools</summary>
 
-### Configure Toolsets
+## Configure Toolsets
 
 The Salesforce DX MCP Server supports **toolsets** - a way to selectively enable different groups of MCP tools based on your needs. This allows you to run the MCP server with only the tools you require, which in turn reduces the context.
 
@@ -117,24 +117,20 @@ These are the available toolsets.
 | `aura-experts` | [Tools which provides Aura component analysis, blueprinting, and migration expertise.](README.md#aura-experts-toolset)|
 | `lwc-experts`  | [Tools to assist with LWC development, testing, optimization, and best practices.](README.md#lwc-experts-toolset)|
 
-### Configure Tools
+## Configure Tools
 
 The Salesforce DX MCP Server also supports registering individual **tools**. This can be used in combination with **toolsets** to further fine-tune registered tools.
 
 Use the `--tools` flag to enable specific tools when you configure the Salesforce DX MCP Server. Separate multiple tools with commas. The `--tools` flag is optional.
 
-The following sections list all the tools that are included in a specific toolset. 
+The following sections list all the tools that are included in a specific toolset. The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
 
-#### Core Toolset (always enabled)
-
-Includes these tools:
+### Core Toolset (always enabled)
 
 - `get_username` - Determines the appropriate username or alias for Salesforce operations, handling both default orgs and Dev Hubs.
 - `resume_tool_operation` - Resumes a long-running operation that wasn't completed by another tool.
 
-#### Orgs Toolset
-
-Includes these tools:
+### Orgs Toolset
 
 - `list_all_orgs` - Lists all configured Salesforce orgs, with optional connection status checking.
 - `create_org_snapshot` - (NON-GA) Create a scratch org snapshot. 
@@ -144,35 +140,25 @@ Includes these tools:
 
 **NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
 
-#### Data Toolset
-
-Includes this tool:
+### Data Toolset
 
 - `run_soql_query` - Runs a SOQL query against a Salesforce org.
 
-#### Users Toolset
-
-Includes this tool:
+### Users Toolset
 
 - `assign_permission_set` - Assigns a permission set to the user or on behalf of another user.
 
-#### Metadata Toolset
-
-Includes these tools:
+### Metadata Toolset
 
 - `deploy_metadata` - Deploys metadata from your DX project to an org.
 - `retrieve_metadata` - Retrieves metadata from your org to your DX project.
 
-#### Testing Toolset
-
-Includes these tools:
+### Testing Toolset
 
 - `run_agent_test` - Executes agent tests in your org.
 - `run_apex_test` - Executes apex tests in your org.
 
-#### Mobile Toolset
-
-Includes these tools, which aren't yet generally available:
+### Mobile Toolset
 
 - `create_mobile_lwc_app_review` - (NON-GA) Provides TypeScript API documentation for Salesforce LWC App Review Service, offering expert guidance for implementing app review features in Lightning Web Components.
 - `create_mobile_lwc_ar_space_capture` - (NON-GA) Provides TypeScript API documentation for Salesforce L    WC AR Space Capture, offering expert guidance for implementing AR space capture features in Lightning Web Components.
@@ -188,11 +174,7 @@ Includes these tools, which aren't yet generally available:
 - `get_mobile_lwc_offline_analysis` - (NON-GA) Analyzes Lightning Web Components for mobile-specific issues and provides detailed recommendations for mobile offline compatibility and performance improvements.
 - `get_mobile_lwc_offline_guidance` - (NON-GA) Provides structured review instructions to detect and remediate mobile offline code violations in Lightning Web Components for Salesforce Mobile Apps.
 
-**NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
-
-#### Mobile-core Toolset
-
-Includes these essential mobile tools, which aren't yet generally available:
+### Mobile-core Toolset
 
 - `create_mobile_lwc_barcode_scanner` - (NON-GA) Provides TypeScript API documentation for Salesforce LWC Barcode Scanner, offering expert guidance for implementing barcode scanning features in Lightning Web Components.
 - `create_mobile_lwc_biometrics` - (NON-GA) Provides TypeScript API documentation for Salesforce LWC Biometrics Service, offering expert guidance for implementing biometric authentication features in Lightning Web Components.
@@ -200,9 +182,7 @@ Includes these essential mobile tools, which aren't yet generally available:
 - `get_mobile_lwc_offline_analysis` - (NON-GA) Analyzes Lightning Web Components for mobile-specific issues and provides detailed recommendations for mobile offline compatibility and performance improvements.
 - `get_mobile_lwc_offline_guidance` - (NON-GA) Provides structured review instructions to detect and remediate mobile offline code violations in Lightning Web Components for Salesforce Mobile Apps.
 
-**NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
-
-#### Aura Experts Toolset
+### Aura Experts Toolset
 
  - `create_aura_blueprint_draft` - (GA)
 Creates a comprehensive Product Requirements Document (PRD) blueprint for Aura component migration. Analyzes Aura component files and generates framework-agnostic specifications suitable for LWC migration, including business requirements, technical patterns, and migration guidelines.
@@ -216,16 +196,16 @@ Provides migration bridge guidance for creating LWC components from Aura specifi
  - `orchestrate_aura_migration` - (GA)
 Orchestrates the complete Aura to LWC migration workflow. Provides end-to-end guidance for the entire migration process, from initial analysis through final implementation, including best practices, tooling recommendations, and quality assurance steps.
 
-**NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
+### Lwc Experts Toolset
 
-#### Lwc Experts Toolset
+#### Component Development
 
-##### Component Development
  - `create_lwc_component` - (GA) Creates complete LWC components from PRD specifications with proper structure and best practices
  - `create_lwc_jest_tests` - (GA) Generates comprehensive Jest test suites for LWC components with coverage and mocking
  - `review_lwc_jest_tests` - (GA) Reviews and validates Jest test implementations for LWC components
 
-##### Development Guidelines
+#### Development Guidelines
+
  - `guide_lwc_accessibility` - (GA) Provides accessibility guidelines and testing instructions for LWC components
  - `guide_lwc_best_practices` - (GA) Offers LWC development best practices and coding standards guidance
  - `guide_lwc_development` - (GA) Comprehensive LWC development workflow and implementation guidelines
@@ -233,34 +213,30 @@ Orchestrates the complete Aura to LWC migration workflow. Provides end-to-end gu
  - `guide_lwc_slds2_uplift_linter_fixes` - (GA) Analyzes the given LWC code along with the slds-linter output to fix issues using the SLDS2 knowledge
  - `guide_lwc_security` - (GA) Comprehensive security analysis in accordance with Product Security Guidelines and Lightning Web Security Guidelines
 
-##### Workflow Tools
+#### Workflow Tools
+
  - `orchestrate_lwc_component_creation` - (GA) Step-by-step component creation workflow guidance
  - `orchestrate_lwc_component_optimization` - (GA)  Performance optimization and best practices for LWC components
  - `orchestrate_lwc_component_testing` - (GA) Comprehensive testing workflow and test generation guidance
  - `orchestrate_lwc_slds2_uplift` - (GA) Migration guidance for upgrading to SLDS2 design system
 
-##### LDS (Lightning Design System) Tools
+#### LDS (Lightning Design System) Tools
+
  - `explore_lds_uiapi` - (GA) Explores and documents Lightning Design System UI API capabilities
  - `guide_lds_data_consistency` - (GA) Data consistency patterns and best practices for LDS components
  - `guide_lds_development` - (GA) LDS development guidelines and component integration
  - `guide_lds_referential_integrity` - (GA) Referential integrity patterns for LDS data management
  - `orchestrate_lds_data_requirements` - (GA) Step-by-step guidance for analyzing and clarifying LDS data requirements to produce PRD-ready specifications.
 
-##### Migration & Integration Tools
+#### Migration & Integration Tools
+
  - `verify_aura_migration_completeness` - (GA) Aura to LWC migration completeness checklist and validation
  - `guide_figma_to_lwc_conversion` - (GA) Converts Figma designs to LWC component specifications
  - `run_lwc_accessibility_jest_tests` - (GA) Accessibility testing utilities and Jest integration for LWC components
 
-**NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
-
-#### Code-Analyzer Toolset
-
-Includes these tools, which aren't yet generally available:
+### Code-Analysis Toolset
 
 - `run_code_analyzer` - (NON-GA) Performs a static analysis of your code using Salesforce Code Analyzer. Includes validating that the code conforms to best practices, checking for security vulnerabilities, and identifying possible performance issues.
 - `describe_code_analyzer_rule` - (NON-GA) Gets the description of a Salesforce Code Analyzer rule, including the engine it belongs to, its severity, and associated tags.
-
-
-**NOTE:** The tools marked NON-GA are not yet generally available, specify the `--allow-non-ga-tools` flag to use them. 
 
 </details>
