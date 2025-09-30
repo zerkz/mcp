@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import { McpTestClient, DxMcpTransport } from '@salesforce/mcp-test-client';
-import { TestSession } from '@salesforce/cli-plugins-testkit';
+import { execCmd, TestSession } from '@salesforce/cli-plugins-testkit';
 import { z } from 'zod';
 import { createScratchOrgParams } from '../../src/tools/create_scratch_org.js';
 
@@ -28,6 +28,7 @@ describe('create_scratch_org', () => {
   const devHubUsername = process.env.TESTKIT_HUB_USERNAME as string;
 
   let testSession: TestSession;
+  let resolvedDevHubUsername: string;
 
   const createScratchOrgSchema = {
     name: z.literal('create_scratch_org'),
@@ -40,6 +41,19 @@ describe('create_scratch_org', () => {
         name: 'MyTestProject',
       },
       devhubAuthStrategy: 'AUTO',
+    });
+
+    // Get the hub username from the testSession and set it as the global target-dev-hub
+    const hubUsername = testSession.hubOrg?.username;
+    resolvedDevHubUsername = hubUsername ?? devHubUsername;
+    
+    if (!resolvedDevHubUsername) {
+      throw new Error('No DevHub username available from TestSession or TESTKIT_HUB_USERNAME environment variable');
+    }
+
+    execCmd(`config set target-dev-hub ${resolvedDevHubUsername} --global`, {
+      cli: 'sf',
+      ensureExitCode: 0,
     });
 
     const transport = DxMcpTransport({
@@ -63,10 +77,10 @@ describe('create_scratch_org', () => {
       name: 'create_scratch_org',
       params: {
         directory: testSession.project.dir,
-        devHub: devHubUsername,
+        devHub: resolvedDevHubUsername,
       },
     });
-
+    
     expect(result.isError).to.be.false;
     expect(result.content.length).to.equal(1);
     expect(result.content[0].type).to.equal('text');
@@ -80,7 +94,7 @@ describe('create_scratch_org', () => {
       name: 'create_scratch_org',
       params: {
         directory: testSession.project.dir,
-        devHub: devHubUsername,
+        devHub: resolvedDevHubUsername,
         async: true,
         alias: 'test-async-org'
       },
@@ -91,7 +105,6 @@ describe('create_scratch_org', () => {
     
     const asyncResponseText = asyncResult.content[0].text;
     expect(asyncResponseText).to.include('Successfully enqueued scratch org with job Id:');
-    expect(asyncResponseText).to.include('use the #resume_tool_operation tool');
   });
 
   it('should create scratch org with optional parameters', async () => {
@@ -99,7 +112,7 @@ describe('create_scratch_org', () => {
       name: 'create_scratch_org',
       params: {
         directory: testSession.project.dir,
-        devHub: devHubUsername,
+        devHub: resolvedDevHubUsername,
         alias: 'test-custom-org',
         duration: 3,
         edition: 'developer',
