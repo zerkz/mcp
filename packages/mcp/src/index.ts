@@ -169,14 +169,14 @@ You can also use special values to control access to orgs:
     }
 
     await Cache.safeSet('allowedOrgs', new Set(flags.orgs));
-    console.error(`Allowed orgs:\n${flags.orgs.map((org) => `- ${org}`).join('\n')}`);
+    this.logToStderr(`Allowed orgs:\n${flags.orgs.map((org) => `- ${org}`).join('\n')}`);
 
     // Validate sandbox-only requirement if flag is set
     if (flags['sandbox-only']) {
-      console.error('Validating that all allowed orgs are sandboxes...');
+      this.logToStderr('Validating that all allowed orgs are sandboxes...');
       const allowedOrgs = await getAllAllowedOrgs();
       await validateSandboxOrgs(allowedOrgs);
-      console.error('✓ All allowed orgs are sandboxes');
+      this.logToStderr('✓ All allowed orgs are sandboxes');
     }
 
     const server = new SfMcpServer(
