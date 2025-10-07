@@ -173,10 +173,8 @@ You can also use special values to control access to orgs:
 
     // Validate sandbox-only requirement if flag is set
     if (flags['sandbox-only']) {
-      this.logToStderr('Validating that all allowed orgs are sandboxes...');
       const allowedOrgs = await getAllAllowedOrgs();
       await validateSandboxOrgs(allowedOrgs);
-      this.logToStderr('✓ All allowed orgs are sandboxes');
     }
 
     const server = new SfMcpServer(
